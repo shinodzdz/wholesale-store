@@ -3,7 +3,8 @@ from functools import wraps
 import sqlite3, os, random, string, hashlib
 from datetime import datetime
 
-app = Flask(__name__)
+_basedir = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, template_folder=os.path.join(_basedir, 'templates'))
 app.secret_key = os.environ.get('SECRET_KEY', 'change-this-to-a-random-secret')
 app.config['SHOP_NAME'] = 'Dépot Bouras Béchar'
 app.config['SHOP_TAGLINE'] = 'طلب المنتجات الغذائية بالجملة'
@@ -31,7 +32,7 @@ def inject_globals():
         'public_url': get_public_url()
     }
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'database.db')
+DB_PATH = os.path.join(_basedir, 'database.db')
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
