@@ -14,16 +14,9 @@ def get_public_url():
     if app.config['PUBLIC_URL']:
         return app.config['PUBLIC_URL'].rstrip('/') + '/'
     try:
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(2)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-        s.close()
-        port = os.environ.get('PORT', 5000)
-        return f'http://{ip}:{port}/'
+        return request.host_url
     except:
-        return 'https://'
+        return 'https://'  # safe fallback
 
 @app.context_processor
 def inject_globals():
