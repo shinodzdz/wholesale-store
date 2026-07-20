@@ -63,9 +63,9 @@ select:focus{outline:none;border-color:var(--accent)}
   <div class="card">
     <h2>📄 معلومات الطلب</h2>
     <div class="info-grid">
-      <div class="info-item"><label>المحل</label><div class="val">{{ order.shop_name }}</div></div>
-      <div class="info-item"><label>الهاتف</label><div class="val">{{ order.phone or '-' }}</div></div>
-      <div class="info-item"><label>العنوان</label><div class="val">{{ order.address or '-' }}</div></div>
+      <div class="info-item"><label>المحل</label><div class="val">{{ order.shop.name }}</div></div>
+      <div class="info-item"><label>الهاتف</label><div class="val">{{ order.shop.phone or '-' }}</div></div>
+      <div class="info-item"><label>العنوان</label><div class="val">{{ order.shop.address or '-' }}</div></div>
       <div class="info-item"><label>التاريخ</label><div class="val" style="color:var(--text-muted);font-weight:400">{{ order.created_at }}</div></div>
     </div>
     {% if order.notes %}

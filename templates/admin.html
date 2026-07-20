@@ -157,7 +157,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
         <tr><th>المحل</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th><th></th></tr>
         {% for o in orders %}
         <tr class="{{ 'row-new' if o.status=='جديد' }}">
-          <td style="font-weight:600">{{ o.shop_name }}</td>
+          <td style="font-weight:600">{{ o.shop.name }}</td>
           <td style="color:var(--accent);font-weight:700">{{ '%.2f'|format(o.total) }} د.ج</td>
           <td style="color:var(--text-dim);font-size:12px">{{ o.created_at }}</td>
           <td><span class="badge badge-{{ 'new' if o.status=='جديد' else 'ready' if o.status=='جاهز' else 'done' }}">{{ o.status }}</span></td>

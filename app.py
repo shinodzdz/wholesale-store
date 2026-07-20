@@ -1,14 +1,76 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
-import sqlite3, os, random, string, hashlib
+import os, random, string, hashlib
 from datetime import datetime
 
 _basedir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(_basedir, 'templates'))
 app.secret_key = os.environ.get('SECRET_KEY', 'change-this-to-a-random-secret')
+
+db_url = os.environ.get('DATABASE_URL', f'sqlite:///{os.path.join(_basedir, "database.db")}')
+db_url = db_url.replace('postgres://', 'postgresql://')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.config['SHOP_NAME'] = 'Dépot Bouras Béchar'
 app.config['SHOP_TAGLINE'] = 'طلب المنتجات الغذائية بالجملة'
 app.config['PUBLIC_URL'] = os.environ.get('PUBLIC_URL', '')
+
+db = SQLAlchemy(app)
+
+class Admin(db.Model):
+    __tablename__ = 'admins'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+class Product(db.Model):
+    __tablename__ = 'products'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String(50), default='قطعة')
+    category = db.Column(db.String(100), default='عام')
+    available = db.Column(db.Integer, default=1)
+
+class Shop(db.Model):
+    __tablename__ = 'shops'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    code = db.Column(db.String(20), unique=True, nullable=False)
+    phone = db.Column(db.String(50))
+    address = db.Column(db.String(300))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    shop_id = db.Column(db.Integer, db.ForeignKey('shops.id'), nullable=False)
+    shop_name = db.Column(db.String(200))
+    notes = db.Column(db.Text)
+    total = db.Column(db.Float, default=0)
+    status = db.Column(db.String(50), default='جديد')
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    shop = db.relationship('Shop', backref='orders')
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    product_name = db.Column(db.String(200), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String(50))
+
+def init_db():
+    db.create_all()
+    if not Admin.query.first():
+        db.session.add(Admin(username='admin', password=hashlib.sha256('admin123'.encode()).hexdigest()))
+        db.session.commit()
+
+with app.app_context():
+    init_db()
 
 def get_public_url():
     if app.config['PUBLIC_URL']:
@@ -16,7 +78,7 @@ def get_public_url():
     try:
         return request.host_url
     except:
-        return 'https://'  # safe fallback
+        return 'https://'
 
 @app.context_processor
 def inject_globals():
@@ -25,65 +87,6 @@ def inject_globals():
         'shop_tagline': app.config['SHOP_TAGLINE'],
         'public_url': get_public_url()
     }
-
-DB_PATH = os.path.join(_basedir, 'database.db')
-
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    conn = get_db()
-    conn.executescript('''
-        CREATE TABLE IF NOT EXISTS admins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            price REAL NOT NULL,
-            unit TEXT DEFAULT 'قطعة',
-            category TEXT DEFAULT 'عام',
-            available INTEGER DEFAULT 1
-        );
-        CREATE TABLE IF NOT EXISTS shops (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            code TEXT UNIQUE NOT NULL,
-            phone TEXT,
-            address TEXT,
-            created_at TEXT DEFAULT (datetime('now','localtime'))
-        );
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            shop_id INTEGER NOT NULL,
-            shop_name TEXT,
-            notes TEXT,
-            total REAL DEFAULT 0,
-            status TEXT DEFAULT 'جديد',
-            created_at TEXT DEFAULT (datetime('now','localtime')),
-            FOREIGN KEY (shop_id) REFERENCES shops(id)
-        );
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            product_name TEXT NOT NULL,
-            quantity REAL NOT NULL,
-            price REAL NOT NULL,
-            unit TEXT,
-            FOREIGN KEY (order_id) REFERENCES orders(id)
-        );
-    ''')
-    if not conn.execute('SELECT * FROM admins').fetchone():
-        conn.execute('INSERT INTO admins (username, password) VALUES (?, ?)',
-                     ('admin', hashlib.sha256('admin123'.encode()).hexdigest()))
-    conn.commit()
-    conn.close()
-
-init_db()
 
 def admin_required(f):
     @wraps(f)
@@ -103,11 +106,8 @@ def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = hashlib.sha256(request.form['password'].encode()).hexdigest()
-        conn = get_db()
-        user = conn.execute('SELECT * FROM admins WHERE username=? AND password=?',
-                           (username, password)).fetchone()
-        conn.close()
-        if user:
+        admin = Admin.query.filter_by(username=username, password=password).first()
+        if admin:
             session['admin_logged_in'] = True
             session['admin_username'] = username
             return redirect(url_for('admin'))
@@ -122,21 +122,11 @@ def admin_logout():
 @app.route('/admin')
 @admin_required
 def admin():
-    conn = get_db()
-    shops = conn.execute('SELECT * FROM shops ORDER BY created_at DESC').fetchall()
-    products = conn.execute('SELECT * FROM products WHERE available=1 ORDER BY category, name').fetchall()
-    new_orders_count = conn.execute(
-        "SELECT COUNT(*) as cnt FROM orders WHERE status='جديد'"
-    ).fetchone()['cnt']
-    pending_count = conn.execute(
-        "SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ('تم التوصيل')"
-    ).fetchone()['cnt']
-    recent_orders = conn.execute('''
-        SELECT o.*, s.name as shop_name FROM orders o
-        JOIN shops s ON o.shop_id = s.id
-        ORDER BY o.created_at DESC LIMIT 20
-    ''').fetchall()
-    conn.close()
+    shops = Shop.query.order_by(Shop.created_at.desc()).all()
+    products = Product.query.filter_by(available=1).order_by(Product.category, Product.name).all()
+    new_orders_count = Order.query.filter_by(status='جديد').count()
+    pending_count = Order.query.filter(Order.status != 'تم التوصيل').count()
+    recent_orders = Order.query.options(db.joinedload(Order.shop)).order_by(Order.created_at.desc()).limit(20).all()
     return render_template('admin.html', shops=shops, products=products, orders=recent_orders,
                            new_orders_count=new_orders_count, pending_count=pending_count)
 
@@ -145,55 +135,47 @@ def admin():
 @app.route('/admin/products', methods=['GET', 'POST'])
 @admin_required
 def manage_products():
-    conn = get_db()
     if request.method == 'POST':
         name = request.form['name']
         price = float(request.form['price'])
         unit = request.form.get('unit', 'قطعة')
         category = request.form.get('category', 'عام')
-        conn.execute('INSERT INTO products (name, price, unit, category) VALUES (?, ?, ?, ?)',
-                     (name, price, unit, category))
-        conn.commit()
-    products = conn.execute('SELECT * FROM products ORDER BY category, name').fetchall()
-    conn.close()
+        db.session.add(Product(name=name, price=price, unit=unit, category=category))
+        db.session.commit()
+    products = Product.query.order_by(Product.category, Product.name).all()
     return render_template('products.html', products=products)
 
 @app.route('/admin/products/delete/<int:id>')
 @admin_required
 def delete_product(id):
-    conn = get_db()
-    conn.execute('DELETE FROM products WHERE id=?', (id,))
-    conn.commit()
-    conn.close()
+    product = db.session.get(Product, id)
+    if product:
+        db.session.delete(product)
+        db.session.commit()
     return redirect(url_for('manage_products'))
 
 @app.route('/admin/products/toggle/<int:id>')
 @admin_required
 def toggle_product(id):
-    conn = get_db()
-    p = conn.execute('SELECT available FROM products WHERE id=?', (id,)).fetchone()
-    if p:
-        conn.execute('UPDATE products SET available=? WHERE id=?', (0 if p['available'] else 1, id))
-        conn.commit()
-    conn.close()
+    product = db.session.get(Product, id)
+    if product:
+        product.available = 0 if product.available else 1
+        db.session.commit()
     return redirect(url_for('manage_products'))
 
 @app.route('/admin/products/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def edit_product(id):
-    conn = get_db()
-    if request.method == 'POST':
-        name = request.form['name']
-        price = float(request.form['price'])
-        unit = request.form.get('unit', 'قطعة')
-        category = request.form.get('category', 'عام')
-        conn.execute('UPDATE products SET name=?, price=?, unit=?, category=? WHERE id=?',
-                     (name, price, unit, category, id))
-        conn.commit()
-        conn.close()
+    product = db.session.get(Product, id)
+    if not product:
         return redirect(url_for('manage_products'))
-    product = conn.execute('SELECT * FROM products WHERE id=?', (id,)).fetchone()
-    conn.close()
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.price = float(request.form['price'])
+        product.unit = request.form.get('unit', 'قطعة')
+        product.category = request.form.get('category', 'عام')
+        db.session.commit()
+        return redirect(url_for('manage_products'))
     return render_template('product_edit.html', product=product)
 
 # ─── Shops ───
@@ -201,45 +183,40 @@ def edit_product(id):
 @app.route('/admin/shops', methods=['GET', 'POST'])
 @admin_required
 def manage_shops():
-    conn = get_db()
     if request.method == 'POST':
         name = request.form['name']
         phone = request.form.get('phone', '')
         address = request.form.get('address', '')
         code = generate_code()
-        while conn.execute('SELECT id FROM shops WHERE code=?', (code,)).fetchone():
+        while Shop.query.filter_by(code=code).first():
             code = generate_code()
-        conn.execute('INSERT INTO shops (name, code, phone, address) VALUES (?, ?, ?, ?)',
-                     (name, code, phone, address))
-        conn.commit()
-    shops = conn.execute('SELECT * FROM shops ORDER BY created_at DESC').fetchall()
-    conn.close()
+        db.session.add(Shop(name=name, code=code, phone=phone, address=address))
+        db.session.commit()
+    shops = Shop.query.order_by(Shop.created_at.desc()).all()
     return render_template('shops.html', shops=shops)
 
 @app.route('/admin/shops/delete/<int:id>')
 @admin_required
 def delete_shop(id):
-    conn = get_db()
-    conn.execute('DELETE FROM shops WHERE id=?', (id,))
-    conn.commit()
-    conn.close()
+    shop = db.session.get(Shop, id)
+    if shop:
+        Order.query.filter_by(shop_id=id).delete()
+        db.session.delete(shop)
+        db.session.commit()
     return redirect(url_for('manage_shops'))
 
 @app.route('/admin/shops/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def edit_shop(id):
-    conn = get_db()
-    if request.method == 'POST':
-        name = request.form['name']
-        phone = request.form.get('phone', '')
-        address = request.form.get('address', '')
-        conn.execute('UPDATE shops SET name=?, phone=?, address=? WHERE id=?',
-                     (name, phone, address, id))
-        conn.commit()
-        conn.close()
+    shop = db.session.get(Shop, id)
+    if not shop:
         return redirect(url_for('manage_shops'))
-    shop = conn.execute('SELECT * FROM shops WHERE id=?', (id,)).fetchone()
-    conn.close()
+    if request.method == 'POST':
+        shop.name = request.form['name']
+        shop.phone = request.form.get('phone', '')
+        shop.address = request.form.get('address', '')
+        db.session.commit()
+        return redirect(url_for('manage_shops'))
     return render_template('shop_edit.html', shop=shop)
 
 # ─── Shop Orders ───
@@ -252,9 +229,7 @@ def index():
 def shop_login():
     if request.method == 'POST':
         code = request.form['code'].strip().upper()
-        conn = get_db()
-        shop = conn.execute('SELECT * FROM shops WHERE code=?', (code,)).fetchone()
-        conn.close()
+        shop = Shop.query.filter_by(code=code).first()
         if shop:
             return redirect(url_for('shop_dashboard', code=code))
         return render_template('shop_login.html', error='كود غير صحيح')
@@ -262,47 +237,29 @@ def shop_login():
 
 @app.route('/shop/<code>')
 def shop_dashboard(code):
-    conn = get_db()
-    shop = conn.execute('SELECT * FROM shops WHERE code=?', (code,)).fetchone()
+    shop = Shop.query.filter_by(code=code).first()
     if not shop:
-        conn.close()
         return redirect(url_for('shop_login'))
-    orders = conn.execute(
-        'SELECT * FROM orders WHERE shop_id=? ORDER BY created_at DESC LIMIT 10',
-        (shop['id'],)
-    ).fetchall()
-    conn.close()
+    orders = Order.query.filter_by(shop_id=shop.id).order_by(Order.created_at.desc()).limit(10).all()
     return render_template('shop_dashboard.html', shop=shop, orders=orders)
 
 @app.route('/shop/<code>/order')
 def shop_order(code):
-    conn = get_db()
-    shop = conn.execute('SELECT * FROM shops WHERE code=?', (code,)).fetchone()
+    shop = Shop.query.filter_by(code=code).first()
     if not shop:
-        conn.close()
         return redirect(url_for('shop_login'))
-    products = conn.execute('SELECT * FROM products WHERE available=1 ORDER BY category, name').fetchall()
-    categories = conn.execute('SELECT DISTINCT category FROM products WHERE available=1 ORDER BY category').fetchall()
-    last_order = conn.execute(
-        'SELECT * FROM orders WHERE shop_id=? ORDER BY created_at DESC LIMIT 1',
-        (shop['id'],)
-    ).fetchone()
-    conn.close()
+    products = Product.query.filter_by(available=1).order_by(Product.category, Product.name).all()
+    categories = [row[0] for row in Product.query.filter_by(available=1).with_entities(Product.category).distinct().order_by(Product.category).all()]
+    last_order = Order.query.filter_by(shop_id=shop.id).order_by(Order.created_at.desc()).first()
     return render_template('shop_order.html', shop=shop, products=products,
-                           categories=[c['category'] for c in categories], last_order=last_order)
+                           categories=categories, last_order=last_order)
 
 @app.route('/shop/<code>/orders')
 def shop_orders(code):
-    conn = get_db()
-    shop = conn.execute('SELECT * FROM shops WHERE code=?', (code,)).fetchone()
+    shop = Shop.query.filter_by(code=code).first()
     if not shop:
-        conn.close()
         return redirect(url_for('shop_login'))
-    orders = conn.execute(
-        'SELECT * FROM orders WHERE shop_id=? ORDER BY created_at DESC',
-        (shop['id'],)
-    ).fetchall()
-    conn.close()
+    orders = Order.query.filter_by(shop_id=shop.id).order_by(Order.created_at.desc()).all()
     return render_template('shop_orders.html', shop=shop, orders=orders)
 
 @app.route('/api/submit-order', methods=['POST'])
@@ -315,89 +272,68 @@ def submit_order():
     if not code or not items:
         return jsonify({'success': False, 'error': 'بيانات ناقصة'})
 
-    conn = get_db()
-    shop = conn.execute('SELECT * FROM shops WHERE code=?', (code,)).fetchone()
+    shop = Shop.query.filter_by(code=code).first()
     if not shop:
-        conn.close()
         return jsonify({'success': False, 'error': 'كود غير صحيح'})
 
     total = sum(float(item['price']) * float(item['qty']) for item in items)
-    cursor = conn.execute(
-        'INSERT INTO orders (shop_id, shop_name, notes, total) VALUES (?, ?, ?, ?)',
-        (shop['id'], shop['name'], notes, total)
-    )
-    order_id = cursor.lastrowid
+    order = Order(shop_id=shop.id, shop_name=shop.name, notes=notes, total=total)
+    db.session.add(order)
+    db.session.flush()
 
     for item in items:
-        conn.execute(
-            'INSERT INTO order_items (order_id, product_name, quantity, price, unit) VALUES (?, ?, ?, ?, ?)',
-            (order_id, item['name'], float(item['qty']), float(item['price']), item.get('unit', ''))
-        )
+        db.session.add(OrderItem(
+            order_id=order.id,
+            product_name=item['name'],
+            quantity=float(item['qty']),
+            price=float(item['price']),
+            unit=item.get('unit', '')
+        ))
 
-    conn.commit()
-    conn.close()
-    return jsonify({'success': True, 'order_id': order_id})
+    db.session.commit()
+    return jsonify({'success': True, 'order_id': order.id})
 
 # ─── View Orders ───
 
 @app.route('/admin/orders')
 @admin_required
 def view_orders():
-    conn = get_db()
-    orders = conn.execute('''
-        SELECT o.*, s.name as shop_name, s.phone, s.address
-        FROM orders o JOIN shops s ON o.shop_id = s.id
-        ORDER BY o.created_at DESC
-    ''').fetchall()
-    conn.close()
+    orders = Order.query.options(db.joinedload(Order.shop)).order_by(Order.created_at.desc()).all()
     return render_template('orders.html', orders=orders)
 
 @app.route('/admin/shops/<int:id>/orders')
 @admin_required
 def shop_orders_admin(id):
-    conn = get_db()
-    shop = conn.execute('SELECT * FROM shops WHERE id=?', (id,)).fetchone()
+    shop = db.session.get(Shop, id)
     if not shop:
-        conn.close()
         return redirect(url_for('manage_shops'))
-    orders = conn.execute('''
-        SELECT o.*, s.name as shop_name, s.phone, s.address
-        FROM orders o JOIN shops s ON o.shop_id = s.id WHERE o.shop_id=?
-        ORDER BY o.created_at DESC
-    ''', (id,)).fetchall()
-    conn.close()
+    orders = Order.query.options(db.joinedload(Order.shop)).filter_by(shop_id=id).order_by(Order.created_at.desc()).all()
     return render_template('orders.html', orders=orders, shop_filter=shop)
 
 @app.route('/admin/order/<int:id>')
 @admin_required
 def order_detail(id):
-    conn = get_db()
-    order = conn.execute('''
-        SELECT o.*, s.name as shop_name, s.phone, s.address
-        FROM orders o JOIN shops s ON o.shop_id = s.id WHERE o.id=?
-    ''', (id,)).fetchone()
-    items = conn.execute('SELECT * FROM order_items WHERE order_id=?', (id,)).fetchall()
-    conn.close()
+    order = Order.query.options(db.joinedload(Order.shop)).get_or_404(id)
+    items = OrderItem.query.filter_by(order_id=id).all()
     return render_template('order_detail.html', order=order, items=items)
 
 @app.route('/admin/order/status/<int:id>', methods=['POST'])
 @admin_required
 def update_status(id):
-    status = request.form['status']
-    conn = get_db()
-    conn.execute('UPDATE orders SET status=? WHERE id=?', (status, id))
-    conn.commit()
-    conn.close()
+    order = db.session.get(Order, id)
+    if order:
+        order.status = request.form['status']
+        db.session.commit()
     return redirect(url_for('view_orders'))
 
 @app.route('/admin/order/delete/<int:id>', methods=['POST'])
 @admin_required
 def delete_order(id):
-    conn = get_db()
-    conn.execute('DELETE FROM order_items WHERE order_id=?', (id,))
-    conn.execute('DELETE FROM orders WHERE id=?', (id,))
-    conn.commit()
-    conn.close()
+    order = db.session.get(Order, id)
+    if order:
+        OrderItem.query.filter_by(order_id=id).delete()
+        db.session.delete(order)
+        db.session.commit()
     return redirect(url_for('view_orders'))
 
 @app.route('/admin/change-password', methods=['GET', 'POST'])
@@ -407,21 +343,15 @@ def change_password():
         current = hashlib.sha256(request.form['current'].encode()).hexdigest()
         new = request.form['new']
         confirm = request.form['confirm']
-        conn = get_db()
-        admin = conn.execute('SELECT * FROM admins WHERE username=?', (session['admin_username'],)).fetchone()
-        if admin['password'] != current:
-            conn.close()
+        admin = Admin.query.filter_by(username=session['admin_username']).first()
+        if admin.password != current:
             return render_template('change_password.html', error='كلمة المرور الحالية غير صحيحة')
         if new != confirm:
-            conn.close()
             return render_template('change_password.html', error='كلمة المرور الجديدة غير متطابقة')
         if len(new) < 4:
-            conn.close()
             return render_template('change_password.html', error='كلمة المرور يجب أن تكون 4 أحرف على الأقل')
-        conn.execute('UPDATE admins SET password=? WHERE username=?',
-                     (hashlib.sha256(new.encode()).hexdigest(), session['admin_username']))
-        conn.commit()
-        conn.close()
+        admin.password = hashlib.sha256(new.encode()).hexdigest()
+        db.session.commit()
         return render_template('change_password.html', success='✅ تم تغيير كلمة المرور بنجاح')
     return render_template('change_password.html')
 
