@@ -13,16 +13,17 @@ app.config['PUBLIC_URL'] = os.environ.get('PUBLIC_URL', '')
 def get_public_url():
     if app.config['PUBLIC_URL']:
         return app.config['PUBLIC_URL'].rstrip('/') + '/'
-    # Try to detect local IP
     try:
         import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(2)
         s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
         s.close()
-        return f'http://{ip}:{os.environ.get("PORT", 5000)}/'
+        port = os.environ.get('PORT', 5000)
+        return f'http://{ip}:{port}/'
     except:
-        return request.host_url if request else 'http://localhost:5000/'
+        return 'https://'
 
 @app.context_processor
 def inject_globals():
