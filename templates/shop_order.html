@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>طلب - {{ shop.name }} | {{ shop_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+--bg:linear-gradient(rgba(11,14,20,0.85),rgba(20,26,38,0.92)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(22,27,34,0.8);--card-border:rgba(255,255,255,0.04);
+--text:#fff;--text-muted:#8B949E;--accent:#58A6FF;--accent-green:#2EA043;--accent-red:#DA3633;
+--brand-bar:rgba(11,14,20,0.55);--header-bg:rgba(11,14,20,0.5);
+--input-bg:rgba(13,17,23,0.8);--input-border:rgba(48,54,61,0.5);--border:rgba(255,255,255,0.08);
+--cart-bar:rgba(22,27,34,0.98);--modal-bg:#161B22;--modal-overlay:rgba(0,0,0,0.8);
+}
+[data-theme="light"]{
+--bg:linear-gradient(rgba(255,255,255,0.88),rgba(240,244,248,0.92)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(255,255,255,0.92);--card-border:rgba(0,0,0,0.06);
+--text:#1a1f2e;--text-muted:#57606a;--accent:#1F6FEB;--accent-green:#1a7f37;--accent-red:#cf222e;
+--brand-bar:rgba(255,255,255,0.7);--header-bg:rgba(255,255,255,0.6);
+--input-bg:rgba(255,255,255,0.9);--input-border:rgba(0,0,0,0.15);--border:rgba(0,0,0,0.08);
+--cart-bar:rgba(255,255,255,0.98);--modal-bg:#fff;--modal-overlay:rgba(255,255,255,0.8);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
+.brand-bar{background:var(--brand-bar);backdrop-filter:blur(12px);padding:12px 16px;text-align:center;border-bottom:1px solid var(--border);transition:background 0.3s}
+.brand-bar .brand-name{font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:0.5px}
+.header{background:var(--header-bg);backdrop-filter:blur(12px);padding:18px 16px 14px;text-align:center;position:sticky;top:0;z-index:10;transition:background 0.3s}
+.header h1{font-size:20px;font-weight:900;color:var(--text)}
+.header .shop-name{color:var(--accent);font-size:14px}
+.header .sub{color:var(--text-muted);font-size:12px;margin-top:4px}
+.theme-btn{background:var(--card-bg);border:1px solid var(--border);color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px;display:inline-block;margin-right:8px;transition:all 0.2s}
+.theme-btn:hover{color:var(--accent)}
+.container{max-width:600px;margin:auto;padding:10px 12px;padding-bottom:130px}
+.cat-title{display:flex;align-items:center;gap:8px;padding:14px 6px 8px;margin-top:10px;border-bottom:2px solid rgba(88,166,255,0.15)}
+.cat-title .dot{width:6px;height:6px;background:var(--accent);border-radius:50%}
+.cat-title span{color:var(--accent);font-weight:700;font-size:15px}
+.product{display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);border:1px solid var(--card-border);padding:12px 14px;border-radius:14px;margin-bottom:6px;transition:all 0.2s}
+.product:hover{border-color:rgba(88,166,255,0.15)}
+.product .info{flex:1}
+.product .name{font-size:15px;font-weight:600;color:var(--text)}
+.product .price{color:var(--text-muted);font-size:13px;margin-top:2px}
+.product .price strong{color:var(--accent)}
+.controls{display:flex;align-items:center;gap:5px}
+.controls button{width:34px;height:34px;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.btn-minus{background:rgba(218,54,51,0.2);color:var(--accent-red)}
+.btn-minus:hover{background:rgba(218,54,51,0.4)}
+.btn-plus{background:rgba(35,134,54,0.2);color:var(--accent-green)}
+.btn-plus:hover{background:rgba(35,134,54,0.4)}
+.controls .qty{width:48px;text-align:center;font-size:16px;font-weight:700;color:var(--accent);background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;padding:6px 4px;font-family:'Cairo',sans-serif}
+.controls .qty:focus{outline:none;border-color:var(--accent)}
+.cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cart-bar);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:14px 16px;z-index:50;transition:background 0.3s}
+.cart-inner{display:flex;justify-content:space-between;align-items:center;max-width:600px;margin:auto}
+.cart-info .count{color:var(--text-muted);font-size:13px}
+.cart-info .total{color:var(--accent);font-size:20px;font-weight:900}
+.btn-order{padding:14px 32px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(35,134,54,0.3)}
+.btn-order:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(35,134,54,0.4)}
+.btn-order:disabled{background:#30363D;box-shadow:none;cursor:default;transform:none;opacity:0.5}
+.modal-overlay{display:none;position:fixed;inset:0;background:var(--modal-overlay);backdrop-filter:blur(8px);z-index:100;justify-content:center;align-items:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--modal-bg);border-radius:24px;padding:28px;width:100%;max-width:420px;max-height:80vh;overflow-y:auto;border:1px solid var(--border);transition:background 0.3s}
+.modal h2{color:var(--accent);font-size:18px;font-weight:700;margin-bottom:16px}
+.modal .item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.modal .item .name{color:var(--text)}
+.modal .item .val{color:var(--accent);font-weight:600}
+.modal .grand-total{text-align:center;margin:18px 0;color:var(--accent);font-size:22px;font-weight:900}
+.modal textarea{width:100%;padding:12px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:12px;color:var(--text);font-size:13px;margin-bottom:14px;resize:vertical;font-family:'Cairo',sans-serif}
+.modal textarea:focus{outline:none;border-color:var(--accent)}
+.modal .actions{display:flex;gap:10px}
+.modal .actions button{flex:1;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-cancel{background:rgba(218,54,51,0.2);color:var(--accent-red)}
+.btn-cancel:hover{background:rgba(218,54,51,0.3)}
+.btn-confirm{background:linear-gradient(135deg,#238636,#2EA043);color:#fff;box-shadow:0 4px 12px rgba(35,134,54,0.3)}
+.btn-confirm:hover{transform:translateY(-1px)}
+.success-screen{display:none;position:fixed;inset:0;background:var(--modal-overlay);backdrop-filter:blur(12px);z-index:200;justify-content:center;align-items:center;padding:20px}
+.success-screen.show{display:flex}
+.success-box{background:var(--modal-bg);border-radius:28px;padding:45px 35px;text-align:center;max-width:380px;border:1px solid var(--border);transition:background 0.3s}
+.success-box .check{width:70px;height:70px;background:linear-gradient(135deg,#238636,#2EA043);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;font-size:32px;box-shadow:0 8px 25px rgba(35,134,54,0.3)}
+.success-box h2{color:var(--text);font-size:22px;font-weight:900;margin-bottom:5px}
+.success-box p{color:var(--text-muted);font-size:14px}
+.success-box .order-num{color:var(--accent);font-size:42px;font-weight:900;margin:10px 0}
+.success-box .btn-new{padding:12px 30px;background:linear-gradient(135deg,#1F6FEB,#8957E5);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px;transition:all 0.3s;box-shadow:0 4px 15px rgba(31,111,235,0.3)}
+.success-box .btn-new:hover{transform:translateY(-2px)}
+.last-order{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:0 12px 10px;display:flex;justify-content:space-between;align-items:center;font-size:13px;transition:background 0.3s}
+.last-order .label{color:var(--text-muted)}
+.last-order .val{font-weight:700}
+.last-order .link{color:var(--accent);text-decoration:none;font-size:12px;padding:5px 10px;background:var(--btn-hover);border-radius:8px;transition:all 0.2s}
+.last-order .link:hover{opacity:0.8}
+</style>
+</head>
+<body>
+<div class="brand-bar"><div class="brand-name">{{ shop_name }} <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button></div></div>
+<div class="header">
+  <div class="shop-name">🏪 {{ shop.name }} <a href="{{ url_for('shop_dashboard', code=shop.code) }}" style="color:var(--text-muted);font-size:12px;text-decoration:none;margin-right:10px">🔙 الرئيسية</a></div>
+  <h1>طلب المنتجات</h1>
+  <div class="sub">اختر الكميات المطلوبة لكل صنف</div>
+</div>
+{% if last_order %}
+<div class="last-order">
+  <div><span class="label">آخر طلب (#{{ last_order.id }}) — </span><span class="val">{{ last_order.status }}</span></div>
+  <a href="{{ url_for('shop_orders', code=shop.code) }}" class="link">عرض الكل</a>
+</div>
+{% endif %}
+<div class="container">
+  {% set current_cat = '' %}
+  {% for p in products %}
+    {% if p.category != current_cat %}
+      {% set current_cat = p.category %}
+      <div class="cat-title"><div class="dot"></div><span>{{ p.category }}</span></div>
+    {% endif %}
+    <div class="product" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.price }}" data-unit="{{ p.unit }}">
+      <div class="info">
+        <div class="name">{{ p.name }}</div>
+        <div class="price"><strong>{{ '%.2f'|format(p.price) }} د.ج</strong> / {{ p.unit }}</div>
+      </div>
+      <div class="controls">
+        <button class="btn-minus" onclick="changeQty(this,-1)">−</button>
+        <input class="qty" type="number" value="0" min="0" step="0.5">
+        <button class="btn-plus" onclick="changeQty(this,1)">+</button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<div class="cart-bar">
+  <div class="cart-inner">
+    <div class="cart-info">
+      <div class="count" id="itemCount">0 منتج</div>
+      <div class="total" id="cartTotal">0 د.ج</div>
+    </div>
+    <button class="btn-order" id="orderBtn" onclick="showReview()" disabled>تقديم الطلب</button>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <h2>📋 مراجعة الطلب</h2>
+    <div id="reviewItems"></div>
+    <div class="grand-total" id="reviewTotal">0 د.ج</div>
+    <textarea id="notes" placeholder="ملاحظات إضافية (اختياري)..." rows="3"></textarea>
+    <div class="actions">
+      <button class="btn-cancel" onclick="closeReview()">تعديل</button>
+      <button class="btn-confirm" onclick="submitOrder()">تأكيد الطلب ✅</button>
+    </div>
+  </div>
+</div>
+<div class="success-screen" id="successScreen">
+  <div class="success-box">
+    <div class="check">✅</div>
+    <h2>تم الطلب بنجاح!</h2>
+    <p>رقم الطلب</p>
+    <div class="order-num" id="orderNumber">#0</div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:13px;">سيتم تجهيز طلبك وإرساله في أقرب وقت</p>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn-new" onclick="location.reload()" style="flex:1">طلب جديد</button>
+      <a href="{{ url_for('shop_dashboard', code=shop.code) }}" class="btn-new" style="flex:1;text-decoration:none;background:linear-gradient(135deg,#1F6FEB,#8957E5);text-align:center;padding:12px 30px;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(31,111,235,0.3);display:inline-block">🔙 الرئيسية</a>
+    </div>
+  </div>
+</div>
+<script>
+const shopCode = '{{ shop.code }}';
+(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
+function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
+function changeQty(btn,d){var inp=btn.parentElement.querySelector('.qty');var v=parseFloat(inp.value)||0;v=Math.max(0,v+d);inp.value=v;updateCart()}
+document.querySelectorAll('.qty').forEach(function(i){i.addEventListener('input',updateCart);i.addEventListener('change',function(){if(parseFloat(this.value)<0)this.value=0})});
+function getItems(){var r=[];document.querySelectorAll('.product').forEach(function(p){var q=parseFloat(p.querySelector('.qty').value)||0;if(q>0)r.push({id:p.dataset.id,name:p.dataset.name,price:parseFloat(p.dataset.price),qty:q,unit:p.dataset.unit})});return r}
+function updateCart(){var items=getItems();var t=items.reduce(function(s,i){return s+i.price*i.qty},0);document.getElementById('itemCount').textContent=items.length+' منتج';document.getElementById('cartTotal').textContent=t.toFixed(2)+' د.ج';document.getElementById('orderBtn').disabled=items.length===0}
+function showReview(){var items=getItems();if(!items.length)return;var h='';items.forEach(function(i){h+='<div class="item"><span class="name">'+i.name+' × '+i.qty+' '+i.unit+'</span><span class="val">'+(i.price*i.qty).toFixed(2)+' د.ج</span></div>'});document.getElementById('reviewItems').innerHTML=h;document.getElementById('reviewTotal').textContent=items.reduce(function(s,i){return s+i.price*i.qty},0).toFixed(2)+' د.ج';document.getElementById('reviewModal').classList.add('show')}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show')}
+function submitOrder(){var items=getItems();var notes=document.getElementById('notes').value;document.getElementById('reviewModal').classList.remove('show');fetch('/api/submit-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:shopCode,items:items,notes:notes})}).then(function(r){return r.json()}).then(function(d){if(d.success){document.getElementById('orderNumber').textContent='#'+d.order_id;document.getElementById('successScreen').classList.add('show')}else{alert(d.error||'خطأ')}}).catch(function(){alert('فشل الاتصال')})}
+</script>
+</body>
+</html>
