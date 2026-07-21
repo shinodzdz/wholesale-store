@@ -109,7 +109,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     <form method="POST">
       <input type="hidden" name="action" value="bulk_set">
       <table>
-        <tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون الحالي</th><th>تعديل</th><th>➕</th><th>➖</th></tr>
+        <tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون الحالي</th><th>تعديل</th></tr>
         {% for p in products %}
         <tr>
           <td style="color:var(--text-dim)">{{ loop.index }}</td>
@@ -117,22 +117,6 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
           <td style="color:var(--text-muted)">{{ p.category }}</td>
           <td><span class="stock-num {{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ p.stock|int or 0 }}</span> <span style="color:var(--text-dim);font-size:12px">{{ p.unit }}</span></td>
           <td><input type="number" step="1" name="stock_{{ p.id }}" value="{{ p.stock|int or 0 }}" min="0" style="width:80px;padding:6px 8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;text-align:center;font-family:'Cairo',sans-serif"></td>
-          <td>
-            <form method="POST" class="stock-form" style="display:inline">
-              <input type="hidden" name="product_id" value="{{ p.id }}">
-              <input type="hidden" name="action" value="add">
-              <input type="hidden" name="qty" value="1">
-              <button type="submit" class="btn-stock btn-add-stock" style="padding:4px 10px;font-size:14px">+</button>
-            </form>
-          </td>
-          <td>
-            <form method="POST" class="stock-form" style="display:inline">
-              <input type="hidden" name="product_id" value="{{ p.id }}">
-              <input type="hidden" name="action" value="sub">
-              <input type="hidden" name="qty" value="1">
-              <button type="submit" class="btn-stock btn-sub-stock" style="padding:4px 10px;font-size:14px">−</button>
-            </form>
-          </td>
         </tr>
         {% endfor %}
       </table>
