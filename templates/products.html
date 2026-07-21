@@ -128,6 +128,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       {% for c in cats|sort %}
       <button class="cat-btn" onclick="filterCat('{{ c|replace("'","\\'") }}',this)">{{ c }}</button>
       {% endfor %}
+      <button class="cat-btn" onclick="sortByCat()" title="ترتيب حسب التصنيف">🔀 ترتيب</button>
     </div>
     {% if products %}
     <table>
@@ -156,6 +157,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
 <script>
 var prods=[{% for p in products %}{n:{{ p.name|tojson }},price:{{ p.price }},stock:{{ p.stock|int }},unit:{{ p.unit|tojson }},cat:{{ p.category|tojson }},avail:{{ '1' if p.available and p.stock>0 else '0' }}}{% if not loop.last %},{% endif %}{% endfor %}];
 function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('#catFilters ~ table tr[data-cat]').forEach(function(r){r.style.display=(cat==='all'||r.getAttribute('data-cat')===cat)?'':'none'})}
+function sortByCat(){var t=document.querySelector('#catFilters ~ table'),r=Array.from(t.querySelectorAll('tr[data-cat]'));r.sort(function(a,b){var ca=a.getAttribute('data-cat')||'',cb=b.getAttribute('data-cat')||'';return ca.localeCompare(cb)});r.forEach(function(row){t.appendChild(row)})}
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
 function printProducts(){var d=new Date();var ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');var h='<html dir=rtl><head><meta charset=UTF-8><title>المنتجات - {{ shop_name }}</title><style>body{font-family:sans-serif;padding:30px}h1{font-size:20px;margin-bottom:2px}.date{color:#888;font-size:13px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f0f0f0;padding:8px 10px;text-align:right;border:1px solid #ddd}td{padding:8px 10px;border:1px solid #ddd}.yes{color:#1a7f37;font-weight:700}.no{color:#d33}.footer{margin-top:20px;font-size:11px;color:#999;text-align:center}</style></head><body><h1>📦 {{ shop_name }}</h1><div class=date>📅 '+ds+'</div><table><tr><th>#</th><th>المنتج</th><th>السعر</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th></tr>';prods.forEach(function(p,i){h+='<tr><td>'+(i+1)+'</td><td>'+p.n+'</td><td>'+p.price.toFixed(2)+' د.ج</td><td>'+p.stock+'</td><td>'+p.unit+'</td><td>'+p.cat+'</td><td class="'+(p.avail?'yes':'no')+'">'+(p.avail?'متاح':'غير متاح')+'</td></tr>'});h+='</table><div class=footer>تمت الطباعة في: '+ds+'</div></body></html>';var w=window.open('','_blank');w.document.write(h);w.document.close()}
