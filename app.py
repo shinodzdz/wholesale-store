@@ -205,6 +205,16 @@ def manage_stock():
                             prod.stock = (prod.stock or 0) + qty
             db.session.commit()
             return redirect(url_for('manage_stock'))
+        if action == 'bulk_set':
+            for key, val in request.form.items():
+                if key.startswith('stock_'):
+                    qty = int(float(val)) if val else 0
+                    pid = int(key.split('_', 1)[1])
+                    prod = db.session.get(Product, pid)
+                    if prod:
+                        prod.stock = max(0, qty)
+            db.session.commit()
+            return redirect(url_for('manage_stock'))
         product_id = int(request.form.get('product_id'))
         qty = int(float(request.form.get('qty', 0)))
         product = db.session.get(Product, product_id)
@@ -260,6 +270,56 @@ def edit_shop(id):
         db.session.commit()
         return redirect(url_for('manage_shops'))
     return render_template('shop_edit.html', shop=shop)
+
+# ─── Import Excel ───
+
+@app.route('/admin/import', methods=['GET', 'POST'])
+@admin_required
+def import_excel():
+    result = None
+    if request.method == 'POST':
+        file = request.files.get('file')
+        import_type = request.form.get('type')
+        if not file or not file.filename.endswith('.xlsx'):
+            return render_template('import.html', error='يرجى رفع ملف Excel بصيغة .xlsx')
+        try:
+            from openpyxl import load_workbook
+            wb = load_workbook(file)
+            ws = wb.active
+            rows = list(ws.iter_rows(values_only=True))
+            if len(rows) < 2:
+                return render_template('import.html', error='الملف لا يحتوي على بيانات كافية')
+            headers = [str(h).strip().lower() if h else '' for h in rows[0]]
+            added = 0
+            if import_type == 'products':
+                for row in rows[1:]:
+                    vals = [str(v).strip() if v else '' for v in row]
+                    name = vals[headers.index('name')] if 'name' in headers else (vals[0] if len(vals) > 0 else '')
+                    price = float(vals[headers.index('price')]) if 'price' in headers else (float(vals[1]) if len(vals) > 1 else 0)
+                    unit = vals[headers.index('unit')] if 'unit' in headers else (vals[2] if len(vals) > 2 else 'قطعة')
+                    category = vals[headers.index('category')] if 'category' in headers else (vals[3] if len(vals) > 3 else 'عام')
+                    stock = int(float(vals[headers.index('stock')])) if 'stock' in headers else 0
+                    if name:
+                        db.session.add(Product(name=name, price=price, unit=unit, category=category, stock=stock))
+                        added += 1
+            elif import_type == 'shops':
+                for row in rows[1:]:
+                    vals = [str(v).strip() if v else '' for v in row]
+                    name = vals[headers.index('name')] if 'name' in headers else (vals[0] if len(vals) > 0 else '')
+                    phone = vals[headers.index('phone')] if 'phone' in headers else (vals[1] if len(vals) > 1 else '')
+                    address = vals[headers.index('address')] if 'address' in headers else (vals[2] if len(vals) > 2 else '')
+                    if name:
+                        code = generate_code()
+                        while Shop.query.filter_by(code=code).first():
+                            code = generate_code()
+                        db.session.add(Shop(name=name, code=code, phone=phone, address=address))
+                        added += 1
+            db.session.commit()
+            result = f'✅ تم استيراد {added} {import_type} بنجاح'
+        except Exception as e:
+            db.session.rollback()
+            return render_template('import.html', error=f'خطأ: {str(e)}')
+    return render_template('import.html', result=result)
 
 # ─── Shop Orders ───
 

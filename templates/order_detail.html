@@ -21,6 +21,17 @@
 --border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* info */
+.info-btn{position:fixed;bottom:16px;left:16px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--topbar-bg);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--text-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.info-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08)}
+.info-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.info-modal.show{display:flex}
+.info-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:28px 30px;width:340px;max-width:90%;text-align:center;box-shadow:var(--shadow)}
+.info-card h3{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:14px}
+.info-card p{font-size:14px;color:var(--text);margin:6px 0;line-height:1.6}
+.info-card .muted{color:var(--text-muted);font-size:12px;margin-top:12px}
+.info-close{margin-top:16px;padding:10px 28px;background:var(--btn-bg);border:none;border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.info-close:hover{background:var(--btn-hover)}
 body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
 .topbar{background:var(--topbar-bg);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;transition:background 0.3s}
 .topbar h1{font-size:17px;font-weight:700}
@@ -52,7 +63,12 @@ select:focus{outline:none;border-color:var(--accent)}
 <div class="topbar">
   <div>
     <a href="{{ url_for('admin') }}">الرئيسية</a>
+    <a href="{{ url_for('manage_products') }}">المنتجات</a>
+    <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">المخزون</a>
+    <a href="{{ url_for('manage_shops') }}">المحلات</a>
     <a href="{{ url_for('view_orders') }}">الطلبات</a>
+    <a href="{{ url_for('change_password') }}" style="font-size:11px">🔑</a>
+    <a href="{{ url_for('admin_logout') }}" style="color:var(--accent-red)">خروج</a>
   </div>
   <div style="display:flex;align-items:center">
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
@@ -122,6 +138,21 @@ select:focus{outline:none;border-color:var(--accent)}
 <script>
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
+</script>
+<button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
+<div class="info-modal" id="infoModal" onclick="closeInfo(event)">
+  <div class="info-card" onclick="event.stopPropagation()">
+    <h3>ℹ️ معلومات المطور</h3>
+    <p><strong>المطور:</strong> Allaoui Ahmed Amine</p>
+    <p><strong>البريد الإلكتروني:</strong> Allaoui.ahmedamine@gmail.com</p>
+    <p><strong>البلد:</strong> بشار، الجزائر</p>
+    <p class="muted">تم تطوير هذا الموقع لإدارة طلبات المنتجات الغذائية بالجملة</p>
+    <button class="info-close" onclick="closeInfo()">إغلاق</button>
+  </div>
+</div>
+<script>
+function showInfo(){document.getElementById('infoModal').classList.add('show')}
+function closeInfo(e){if(!e||e.target===e.currentTarget||!e)document.getElementById('infoModal').classList.remove('show')}
 </script>
 </body>
 </html>

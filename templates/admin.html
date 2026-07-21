@@ -59,6 +59,17 @@
 --shadow:0 25px 60px rgba(0,0,0,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* info button */
+.info-btn{position:fixed;bottom:16px;left:16px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--topbar-bg);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--text-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.info-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08)}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:28px 30px;width:340px;max-width:90%;text-align:center;box-shadow:var(--shadow)}
+.modal-card h3{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:14px}
+.modal-card p{font-size:14px;color:var(--text);margin:6px 0;line-height:1.6}
+.modal-card .muted{color:var(--text-muted);font-size:12px;margin-top:12px}
+.modal-close{margin-top:16px;padding:10px 28px;background:var(--btn-bg);border:none;border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.modal-close:hover{background:var(--btn-hover)}
 body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
 .sidebar{position:fixed;right:0;top:0;height:100vh;width:220px;background:var(--sidebar-bg);backdrop-filter:blur(20px);border-left:1px solid var(--sidebar-border);padding:20px 16px;z-index:100;transform:translateX(100%);transition:transform 0.3s,background 0.3s}
 .sidebar.open{transform:translateX(0)}
@@ -120,9 +131,13 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
       <div class="actions">
-        <a href="{{ url_for('view_orders') }}">📋 الطلبات</a>
+        <a href="{{ url_for('admin') }}">📊 الرئيسية</a>
+        <a href="{{ url_for('manage_products') }}">📦 المنتجات</a>
         <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">📊 المخزون</a>
-        <a href="{{ url_for('admin_logout') }}">🚪</a>
+        <a href="{{ url_for('manage_shops') }}">🏪 المحلات</a>
+        <a href="{{ url_for('view_orders') }}">📋 الطلبات</a>
+        <a href="{{ url_for('change_password') }}" style="font-size:11px">🔑</a>
+        <a href="{{ url_for('admin_logout') }}" style="color:var(--accent-red)">🚪</a>
       </div>
     </div>
     <h1>🏪 <span>{{ shop_name }}</span></h1>
@@ -179,7 +194,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
         {% for s in shops %}
         <tr>
           <td style="font-weight:600">{{ s.name }}</td>
-          <td style="direction:ltr;text-align:left;font-family:monospace;color:var(--accent);font-weight:700;letter-spacing:2px">{{ s.code }}</td>
+          <td style="direction:ltr;font-family:monospace;color:var(--accent);font-weight:700;letter-spacing:2px">{{ s.code }}</td>
           <td style="color:var(--text-muted);font-size:13px">{{ s.phone or '-' }}</td>
           <td style="color:var(--text-dim);font-size:12px">{{ s.created_at }}</td>
           <td><a href="/shop/{{ s.code }}" target="_blank" class="btn-sm btn-view">فتح</a></td>
@@ -192,7 +207,20 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     </div>
   </div>
 </div>
+<button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
+<div class="modal-overlay" id="infoModal" onclick="closeInfo(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <h3>ℹ️ معلومات المطور</h3>
+    <p><strong>المطور:</strong> Allaoui Ahmed Amine</p>
+    <p><strong>البريد الإلكتروني:</strong> Allaoui.ahmedamine@gmail.com</p>
+    <p><strong>البلد:</strong> بشار، الجزائر</p>
+    <p class="muted">تم تطوير هذا الموقع لإدارة طلبات المنتجات الغذائية بالجملة</p>
+    <button class="modal-close" onclick="closeInfo()">إغلاق</button>
+  </div>
+</div>
 <script>
+function showInfo(){document.getElementById('infoModal').classList.add('show')}
+function closeInfo(e){if(!e||e.target===e.currentTarget||!e)document.getElementById('infoModal').classList.remove('show')}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
 document.addEventListener('click',function(e){
   var s=document.getElementById('sidebar');

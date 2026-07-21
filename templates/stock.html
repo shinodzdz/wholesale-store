@@ -21,6 +21,17 @@
 --input-bg:rgba(255,255,255,0.9);--input-border:rgba(0,0,0,0.15);--border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* info */
+.info-btn{position:fixed;bottom:16px;left:16px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--topbar-bg);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--text-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.info-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08)}
+.info-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.info-modal.show{display:flex}
+.info-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:28px 30px;width:340px;max-width:90%;text-align:center;box-shadow:var(--shadow)}
+.info-card h3{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:14px}
+.info-card p{font-size:14px;color:var(--text);margin:6px 0;line-height:1.6}
+.info-card .muted{color:var(--text-muted);font-size:12px;margin-top:12px}
+.info-close{margin-top:16px;padding:10px 28px;background:var(--btn-bg);border:none;border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.info-close:hover{background:var(--btn-hover)}
 body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
 .topbar{background:var(--topbar-bg);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;transition:background 0.3s}
 .topbar h1{font-size:17px;font-weight:700}
@@ -51,16 +62,24 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
 .btn-sm{padding:5px 12px;border-radius:8px;font-size:12px;text-decoration:none;font-weight:600;transition:all 0.2s;display:inline-block;margin-left:4px}
 .btn-edit{background:var(--btn-hover);color:var(--accent)}
 .btn-edit:hover{opacity:0.8}
-.quick-add{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px}
-.quick-item{background:var(--input-bg);border:1px solid var(--border-light);border-radius:12px;padding:12px;text-align:center}
-.quick-item .q-name{font-size:14px;font-weight:700;margin-bottom:6px}
-.quick-item .q-stock{font-size:13px;color:var(--text-muted);margin-bottom:8px}
-.quick-item .q-stock strong{color:var(--accent);font-size:18px}
-.quick-item form{display:flex;gap:4px;justify-content:center}
-.quick-item input[type=number]{width:70px;padding:5px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:13px;text-align:center;font-family:'Cairo',sans-serif}
 .empty{color:var(--text-dim);font-size:14px;text-align:center;padding:30px}
 .empty a{color:var(--accent);text-decoration:none}
 .flash{background:rgba(35,134,54,0.15);border:1px solid rgba(35,134,54,0.3);border-radius:10px;padding:10px 14px;color:var(--accent-green);font-size:13px;margin-bottom:12px;display:none}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:100;justify-content:center;align-items:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;padding:24px;width:100%;max-width:650px;max-height:85vh;overflow-y:auto;transition:background 0.3s}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:16px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.modal .item{display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--border-light)}
+.modal .item .name{font-size:14px;font-weight:600}
+.modal .item .hint{font-size:12px;color:var(--text-muted)}
+.modal .item input[type=number]{width:80px;padding:6px 8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--text);font-size:14px;text-align:center;font-family:'Cairo',sans-serif}
+.modal .item input:focus{outline:none;border-color:var(--accent)}
+.modal .actions{display:flex;gap:10px;margin-top:16px;position:sticky;bottom:0;background:var(--card-bg);padding-top:12px}
+.modal .actions button{flex:1;padding:12px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif}
+.modal .btn-cancel{background:rgba(218,54,51,0.2);color:var(--accent-red)}
+.modal .btn-cancel:hover{background:rgba(218,54,51,0.3)}
+.modal .btn-confirm{background:linear-gradient(135deg,#238636,#2EA043);color:#fff}
+.modal .btn-confirm:hover{transform:translateY(-1px)}
 </style>
 </head>
 <body>
@@ -68,8 +87,11 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   <div>
     <a href="{{ url_for('admin') }}">الرئيسية</a>
     <a href="{{ url_for('manage_products') }}">المنتجات</a>
+    <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">المخزون</a>
+    <a href="{{ url_for('manage_shops') }}">المحلات</a>
     <a href="{{ url_for('view_orders') }}">الطلبات</a>
-    <a href="{{ url_for('admin_logout') }}">خروج</a>
+    <a href="{{ url_for('change_password') }}" style="font-size:11px">🔑</a>
+    <a href="{{ url_for('admin_logout') }}" style="color:var(--accent-red)">خروج</a>
   </div>
   <div style="display:flex;align-items:center">
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
@@ -77,89 +99,47 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   </div>
 </div>
 <div class="container">
-  <div class="card">
-    <h2>📦 <span>إدخال بضاعة جديدة</span></h2>
-    {% if products %}
-    <form method="POST">
-      <input type="hidden" name="action" value="bulk_add">
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px">
-        {% for p in products %}
-        <div style="background:var(--input-bg);border:1px solid var(--border-light);border-radius:10px;padding:10px;text-align:center">
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px">{{ p.name }}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">الحالي: <strong style="color:var(--accent)">{{ p.stock|int or 0 }}</strong></div>
-          <input type="number" name="qty_{{ p.id }}" value="0" min="0" step="1" style="width:80px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--text);font-size:14px;text-align:center;font-family:'Cairo',sans-serif">
-        </div>
-        {% endfor %}
-      </div>
-      <div style="text-align:center;margin-top:14px">
-        <button type="submit" style="padding:12px 36px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif">✅ تأكيد الإدخال</button>
-      </div>
-    </form>
-    {% else %}
-    <div class="empty">لا توجد منتجات. <a href="{{ url_for('manage_products') }}">أضف المنتجات أولاً</a></div>
-    {% endif %}
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <button onclick="openModal()" style="padding:12px 28px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:6px">📦 إدخال بضاعة جديدة</button>
+    <button onclick="printStock()" style="padding:12px 28px;background:var(--btn-hover);border:none;border-radius:12px;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:6px">🖨️ طباعة المخزون</button>
   </div>
   <div class="card">
     <h2>📊 <span>المخزون الحالي</span></h2>
     {% if products %}
-    <div class="quick-add">
-      {% for p in products %}
-      <div class="quick-item">
-        <div class="q-name">{{ p.name }}</div>
-        <div class="q-stock">المخزون: <strong class="{{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ p.stock|int or 0 }}</strong></div>
-        <form method="POST" style="display:flex;gap:4px;justify-content:center">
-          <input type="hidden" name="product_id" value="{{ p.id }}">
-          <input type="hidden" name="action" value="add">
-          <input type="number" step="1" name="qty" value="1" min="0" style="width:60px;padding:5px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:13px;text-align:center;font-family:'Cairo',sans-serif">
-          <button type="submit" class="btn-stock btn-add-stock" style="padding:5px 10px;font-size:12px">+</button>
-        </form>
-        <div style="margin-top:6px;display:flex;gap:4px;justify-content:center">
-          <form method="POST" style="display:inline">
-            <input type="hidden" name="product_id" value="{{ p.id }}">
-            <input type="hidden" name="action" value="sub">
-            <input type="hidden" name="qty" value="1">
-            <button type="submit" class="btn-stock btn-sub-stock" style="padding:3px 8px;font-size:11px">−1</button>
-          </form>
-          <a href="{{ url_for('edit_product', id=p.id) }}" class="btn-sm btn-edit" style="font-size:11px">تعديل</a>
-        </div>
+    <form method="POST">
+      <input type="hidden" name="action" value="bulk_set">
+      <table>
+        <tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون الحالي</th><th>تعديل</th><th>➕</th><th>➖</th></tr>
+        {% for p in products %}
+        <tr>
+          <td style="color:var(--text-dim)">{{ loop.index }}</td>
+          <td style="font-weight:600">{{ p.name }}</td>
+          <td style="color:var(--text-muted)">{{ p.category }}</td>
+          <td><span class="stock-num {{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ p.stock|int or 0 }}</span> <span style="color:var(--text-dim);font-size:12px">{{ p.unit }}</span></td>
+          <td><input type="number" step="1" name="stock_{{ p.id }}" value="{{ p.stock|int or 0 }}" min="0" style="width:80px;padding:6px 8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;text-align:center;font-family:'Cairo',sans-serif"></td>
+          <td>
+            <form method="POST" class="stock-form" style="display:inline">
+              <input type="hidden" name="product_id" value="{{ p.id }}">
+              <input type="hidden" name="action" value="add">
+              <input type="hidden" name="qty" value="1">
+              <button type="submit" class="btn-stock btn-add-stock" style="padding:4px 10px;font-size:14px">+</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" class="stock-form" style="display:inline">
+              <input type="hidden" name="product_id" value="{{ p.id }}">
+              <input type="hidden" name="action" value="sub">
+              <input type="hidden" name="qty" value="1">
+              <button type="submit" class="btn-stock btn-sub-stock" style="padding:4px 10px;font-size:14px">−</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <div style="text-align:center;margin-top:14px">
+        <button type="submit" style="padding:12px 36px;background:linear-gradient(135deg,#1F6FEB,#8957E5);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif">💾 حفظ الكل</button>
       </div>
-      {% endfor %}
-    </div>
-    <table>
-      <tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون</th><th>إضافة</th><th>إنقاص</th><th>تحديد</th></tr>
-      {% for p in products %}
-      <tr>
-        <td style="color:var(--text-dim)">{{ loop.index }}</td>
-        <td style="font-weight:600">{{ p.name }}</td>
-        <td style="color:var(--text-muted)">{{ p.category }}</td>
-        <td><span class="stock-num {{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ p.stock|int or 0 }}</span> <span style="color:var(--text-dim);font-size:11px">{{ p.unit }}</span></td>
-        <td>
-          <form method="POST" class="stock-form">
-            <input type="hidden" name="product_id" value="{{ p.id }}">
-            <input type="hidden" name="action" value="add">
-            <input type="number" step="1" name="qty" value="1" min="0">
-            <button type="submit" class="btn-stock btn-add-stock">➕</button>
-          </form>
-        </td>
-        <td>
-          <form method="POST" class="stock-form">
-            <input type="hidden" name="product_id" value="{{ p.id }}">
-            <input type="hidden" name="action" value="sub">
-            <input type="number" step="1" name="qty" value="1" min="0">
-            <button type="submit" class="btn-stock btn-sub-stock">➖</button>
-          </form>
-        </td>
-        <td>
-          <form method="POST" class="stock-form">
-            <input type="hidden" name="product_id" value="{{ p.id }}">
-            <input type="hidden" name="action" value="set">
-            <input type="number" step="1" name="qty" value="{{ p.stock|int or 0 }}" style="width:90px">
-            <button type="submit" class="btn-stock btn-set-stock">تعيين</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+    </form>
     {% else %}
     <div class="empty">لا توجد منتجات. <a href="{{ url_for('manage_products') }}">أضف المنتجات أولاً</a></div>
     {% endif %}
@@ -168,9 +148,51 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     <a href="{{ url_for('manage_products') }}" style="padding:10px 24px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block">➕ إضافة منتج جديد</a>
   </div>
 </div>
+<div class="modal-overlay" id="stockModal">
+  <div class="modal">
+    <h2>📦 إدخال بضاعة جديدة</h2>
+    <form method="POST" id="bulkForm">
+      <input type="hidden" name="action" value="bulk_add">
+      <div id="modalItems">
+        {% if products %}
+        {% for p in products %}
+        <div class="item">
+          <div><div class="name">{{ p.name }}</div><div class="hint">الحالي: <strong style="color:var(--accent)">{{ p.stock|int or 0 }}</strong></div></div>
+          <input type="number" name="qty_{{ p.id }}" value="0" min="0" step="1">
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-cancel" onclick="closeModal()">إلغاء</button>
+        <button type="submit" class="btn-confirm">✅ تأكيد الإدخال</button>
+      </div>
+    </form>
+  </div>
+</div>
 <script>
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
+function openModal(){document.getElementById('stockModal').classList.add('show')}
+function closeModal(){document.getElementById('stockModal').classList.remove('show')}
+document.getElementById('stockModal').addEventListener('click',function(e){if(e.target===this)closeModal()})
+var products=[{% for p in products %}{n:{{ p.name|tojson }},cat:{{ p.category|tojson }},stock:{{ p.stock|int }},unit:{{ p.unit|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}];
+function printStock(){var d=new Date();var ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');var h='<html dir=rtl><head><meta charset=UTF-8><title>المخزون - {{ shop_name }}</title><style>body{font-family:sans-serif;padding:30px}h1{font-size:20px;margin-bottom:2px}.date{color:#888;font-size:13px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f0f0f0;padding:8px 10px;text-align:right;border:1px solid #ddd}td{padding:8px 10px;border:1px solid #ddd}.low{color:#d33;font-weight:700}.ok{color:#1a7f37;font-weight:700}.footer{margin-top:20px;font-size:11px;color:#999;text-align:center}@media print{button{display:none}}</style></head><body><h1>📊 {{ shop_name }}</h1><div class=date>📅 '+ds+'</div><table><tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون</th><th>الوحدة</th></tr>';products.forEach(function(p,i){h+='<tr><td>'+(i+1)+'</td><td>'+p.n+'</td><td>'+p.cat+'</td><td class="'+(p.stock>0?'ok':'low')+'">'+p.stock+'</td><td>'+p.unit+'</td></tr>'});h+='</table><div class=footer>تمت الطباعة في: '+ds+'</div></body></html>';var w=window.open('','_blank');w.document.write(h);w.document.close()}
+</script>
+<button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
+<div class="info-modal" id="infoModal" onclick="closeInfo(event)">
+  <div class="info-card" onclick="event.stopPropagation()">
+    <h3>ℹ️ معلومات المطور</h3>
+    <p><strong>المطور:</strong> Allaoui Ahmed Amine</p>
+    <p><strong>البريد الإلكتروني:</strong> Allaoui.ahmedamine@gmail.com</p>
+    <p><strong>البلد:</strong> بشار، الجزائر</p>
+    <p class="muted">تم تطوير هذا الموقع لإدارة طلبات المنتجات الغذائية بالجملة</p>
+    <button class="info-close" onclick="closeInfo()">إغلاق</button>
+  </div>
+</div>
+<script>
+function showInfo(){document.getElementById('infoModal').classList.add('show')}
+function closeInfo(e){if(!e||e.target===e.currentTarget||!e)document.getElementById('infoModal').classList.remove('show')}
 </script>
 </body>
 </html>

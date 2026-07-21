@@ -23,6 +23,17 @@
 --border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* info */
+.info-btn{position:fixed;bottom:16px;left:16px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--topbar-bg);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--text-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.info-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08)}
+.info-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.info-modal.show{display:flex}
+.info-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:28px 30px;width:340px;max-width:90%;text-align:center;box-shadow:var(--shadow)}
+.info-card h3{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:14px}
+.info-card p{font-size:14px;color:var(--text);margin:6px 0;line-height:1.6}
+.info-card .muted{color:var(--text-muted);font-size:12px;margin-top:12px}
+.info-close{margin-top:16px;padding:10px 28px;background:var(--btn-bg);border:none;border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.info-close:hover{background:var(--btn-hover)}
 body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
 .topbar{background:var(--topbar-bg);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;transition:background 0.3s}
 .topbar h1{font-size:17px;font-weight:700}
@@ -59,8 +70,11 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   <div>
     <a href="{{ url_for('admin') }}">الرئيسية</a>
     <a href="{{ url_for('manage_products') }}">المنتجات</a>
+    <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">المخزون</a>
+    <a href="{{ url_for('manage_shops') }}">المحلات</a>
     <a href="{{ url_for('view_orders') }}">الطلبات</a>
-    <a href="{{ url_for('admin_logout') }}">خروج</a>
+    <a href="{{ url_for('change_password') }}" style="font-size:11px">🔑</a>
+    <a href="{{ url_for('admin_logout') }}" style="color:var(--accent-red)">خروج</a>
   </div>
   <div style="display:flex;align-items:center">
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
@@ -76,6 +90,10 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <input type="text" name="address" placeholder="العنوان" style="width:280px">
       <button type="submit" class="btn-add">إضافة المحل</button>
     </form>
+    <div style="margin-top:10px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <a href="{{ url_for('import_excel') }}" style="padding:8px 18px;background:var(--btn-hover);border:none;border-radius:10px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block">📥 استيراد من Excel</a>
+      <button onclick="printShops()" style="padding:8px 18px;background:var(--btn-bg);border:none;border-radius:10px;color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;display:inline-block">🖨️ طباعة</button>
+    </div>
   </div>
   <div class="card">
     <h2>📋 المحلات المسجلة</h2>
@@ -104,11 +122,28 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   </div>
 </div>
 <script>
+var shps=[{% for s in shops %}{n:{{ s.name|tojson }},code:{{ s.code|tojson }},phone:{{ (s.phone or '')|tojson }},addr:{{ (s.address or '')|tojson }},cr:{{ s.created_at|tojson if s.created_at else ''|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}];
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
 function copyLink(btn,link){navigator.clipboard.writeText(link);btn.textContent='✓';setTimeout(()=>btn.textContent='نسخ',1500)}
 function printQR(name,link,code){var w=window.open('','_blank');w.document.write('<html dir=rtl><head><meta charset=UTF-8><title>QR - '+name+'</title><style>body{text-align:center;font-family:sans-serif;padding:40px}.store{color:#888;font-size:14px;margin-bottom:4px}h2{margin-bottom:2px}img{width:280px;height:280px}.code{font-size:24px;font-weight:700;letter-spacing:4px;color:#333;margin:10px 0}p{color:#666;margin-top:8px}@media print{button{display:none}}</style></head><body><div class=store>{{ shop_name }}</div><h2>🏪 '+name+'</h2><div class=code>'+code+'</div><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+link+'" alt="QR"><p>امسح الرمز للدخول للصفحة الرئيسية</p><br><button onclick="window.print()" style="padding:12px 30px;font-size:16px;cursor:pointer">🖨️ طباعة</button></body></html>');w.document.close()}
 function setPublicUrl(){var e=document.getElementById('publicUrlDisplay');if(e){e.textContent='{{ public_url }}'}}
+function printShops(){var d=new Date();var ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');var h='<html dir=rtl><head><meta charset=UTF-8><title>المحلات - {{ shop_name }}</title><style>body{font-family:sans-serif;padding:30px}h1{font-size:20px;margin-bottom:2px}.date{color:#888;font-size:13px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f0f0f0;padding:8px 10px;text-align:right;border:1px solid #ddd}td{padding:8px 10px;border:1px solid #ddd}.footer{margin-top:20px;font-size:11px;color:#999;text-align:center}</style></head><body><h1>🏪 {{ shop_name }}</h1><div class=date>📅 '+ds+'</div><table><tr><th>#</th><th>المحل</th><th>الكود</th><th>الهاتف</th><th>العنوان</th><th>التسجيل</th></tr>';shps.forEach(function(s,i){h+='<tr><td>'+(i+1)+'</td><td>'+s.n+'</td><td style="font-family:monospace;letter-spacing:2px;font-weight:700">'+s.code+'</td><td>'+(s.phone||'-')+'</td><td>'+(s.addr||'-')+'</td><td style="font-size:12px">'+s.cr+'</td></tr>'});h+='</table><div class=footer>تمت الطباعة في: '+ds+'</div></body></html>';var w=window.open('','_blank');w.document.write(h);w.document.close()}
+</script>
+<button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
+<div class="info-modal" id="infoModal" onclick="closeInfo(event)">
+  <div class="info-card" onclick="event.stopPropagation()">
+    <h3>ℹ️ معلومات المطور</h3>
+    <p><strong>المطور:</strong> Allaoui Ahmed Amine</p>
+    <p><strong>البريد الإلكتروني:</strong> Allaoui.ahmedamine@gmail.com</p>
+    <p><strong>البلد:</strong> بشار، الجزائر</p>
+    <p class="muted">تم تطوير هذا الموقع لإدارة طلبات المنتجات الغذائية بالجملة</p>
+    <button class="info-close" onclick="closeInfo()">إغلاق</button>
+  </div>
+</div>
+<script>
+function showInfo(){document.getElementById('infoModal').classList.add('show')}
+function closeInfo(e){if(!e||e.target===e.currentTarget||!e)document.getElementById('infoModal').classList.remove('show')}
 </script>
 </body>
 </html>
