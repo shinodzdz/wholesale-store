@@ -33,6 +33,7 @@ class Product(db.Model):
     unit = db.Column(db.String(50), default='قطعة')
     category = db.Column(db.String(100), default='عام')
     available = db.Column(db.Integer, default=1)
+    stock = db.Column(db.Float, default=0)
 
 class Shop(db.Model):
     __tablename__ = 'shops'
@@ -68,6 +69,12 @@ def init_db():
     if not Admin.query.first():
         db.session.add(Admin(username='admin', password=hashlib.sha256('admin123'.encode()).hexdigest()))
         db.session.commit()
+    try:
+        from sqlalchemy import text
+        db.session.execute(text('ALTER TABLE products ADD COLUMN stock FLOAT DEFAULT 0'))
+        db.session.commit()
+    except:
+        db.session.rollback()
 
 with app.app_context():
     init_db()
@@ -140,7 +147,8 @@ def manage_products():
         price = float(request.form['price'])
         unit = request.form.get('unit', 'قطعة')
         category = request.form.get('category', 'عام')
-        db.session.add(Product(name=name, price=price, unit=unit, category=category))
+        stock = float(request.form.get('stock', 0))
+        db.session.add(Product(name=name, price=price, unit=unit, category=category, stock=stock))
         db.session.commit()
     products = Product.query.order_by(Product.category, Product.name).all()
     return render_template('products.html', products=products)
@@ -174,6 +182,7 @@ def edit_product(id):
         product.price = float(request.form['price'])
         product.unit = request.form.get('unit', 'قطعة')
         product.category = request.form.get('category', 'عام')
+        product.stock = float(request.form.get('stock', 0))
         db.session.commit()
         return redirect(url_for('manage_products'))
     return render_template('product_edit.html', product=product)
@@ -322,7 +331,14 @@ def order_detail(id):
 def update_status(id):
     order = db.session.get(Order, id)
     if order:
+        old_status = order.status
         order.status = request.form['status']
+        if order.status == 'تم التوصيل' and old_status != 'تم التوصيل':
+            items = OrderItem.query.filter_by(order_id=id).all()
+            for item in items:
+                prod = Product.query.filter_by(name=item.product_name).first()
+                if prod:
+                    prod.stock = max(0, prod.stock - item.quantity)
         db.session.commit()
     return redirect(url_for('view_orders'))
 

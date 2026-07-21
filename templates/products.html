@@ -92,6 +92,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     <form method="POST">
       <input type="text" name="name" placeholder="اسم المنتج" required style="width:220px">
       <input type="number" step="0.01" name="price" placeholder="السعر" required style="width:100px">
+      <input type="number" step="0.5" name="stock" placeholder="المخزون" value="0" style="width:90px">
       <input type="text" name="unit" placeholder="الوحدة" value="قطعة" style="width:100px">
       <input type="text" name="category" placeholder="التصنيف" value="عام" style="width:120px">
       <button type="submit" class="btn-add">إضافة</button>
@@ -101,14 +102,15 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     <h2>📋 قائمة المنتجات</h2>
     {% if products %}
     <table>
-      <tr><th>الاسم</th><th>السعر</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
+      <tr><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
       {% for p in products %}
       <tr>
         <td style="font-weight:600">{{ p.name }}</td>
         <td>{{ '%.2f'|format(p.price) }} د.ج</td>
+        <td style="font-weight:700;color:{{ 'var(--accent-green)' if p.stock>0 else 'var(--accent-red)' }}">{{ '%.1f'|format(p.stock) if p.stock else '0' }}</td>
         <td style="color:var(--text-muted)">{{ p.unit }}</td>
         <td style="color:var(--text-muted)">{{ p.category }}</td>
-        <td class="{{ 'avail' if p.available else 'unavail' }}">{{ 'متاح' if p.available else 'غير متاح' }}</td>
+        <td class="{{ 'avail' if p.available and p.stock>0 else 'unavail' }}">{{ 'متاح' if p.available and p.stock>0 else 'غير متاح' if not p.available else 'نفذ' }}</td>
         <td>
           <a href="{{ url_for('edit_product', id=p.id) }}" class="btn-sm btn-edit">تعديل</a>
           <a href="{{ url_for('toggle_product', id=p.id) }}" class="btn-sm btn-tog">{{ 'إخفاء' if p.available else 'إظهار' }}</a>

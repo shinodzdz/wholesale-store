@@ -33,6 +33,8 @@ input:focus{outline:none;border-color:var(--accent)}
     <input type="text" name="name" value="{{ product.name }}" required>
     <label>السعر</label>
     <input type="number" step="0.01" name="price" value="{{ product.price }}" required>
+    <label>المخزون</label>
+    <input type="number" step="0.5" name="stock" value="{{ product.stock or 0 }}">
     <label>الوحدة</label>
     <input type="text" name="unit" value="{{ product.unit }}">
     <label>التصنيف</label>
