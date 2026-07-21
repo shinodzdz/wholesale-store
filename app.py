@@ -194,8 +194,19 @@ def edit_product(id):
 def manage_stock():
     if request.method == 'POST':
         action = request.form.get('action')
+        if action == 'bulk_add':
+            for key, val in request.form.items():
+                if key.startswith('qty_'):
+                    qty = int(float(val)) if val else 0
+                    if qty > 0:
+                        pid = int(key.split('_', 1)[1])
+                        prod = db.session.get(Product, pid)
+                        if prod:
+                            prod.stock = (prod.stock or 0) + qty
+            db.session.commit()
+            return redirect(url_for('manage_stock'))
         product_id = int(request.form.get('product_id'))
-        qty = float(request.form.get('qty', 0))
+        qty = int(float(request.form.get('qty', 0)))
         product = db.session.get(Product, product_id)
         if product:
             if action == 'add':
