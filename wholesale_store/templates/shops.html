@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المحلات - {{ shop_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+--bg:linear-gradient(rgba(11,14,20,0.82),rgba(26,31,46,0.88)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(22,27,34,0.8);--card-border:rgba(255,255,255,0.04);--topbar-bg:rgba(11,14,20,0.55);
+--text:#fff;--text-muted:#8B949E;--text-dim:#484F58;--accent:#58A6FF;--accent-green:#2EA043;--accent-red:#DA3633;
+--btn-bg:rgba(48,54,61,0.5);--btn-hover:rgba(88,166,255,0.15);
+--input-bg:rgba(13,17,23,0.8);--input-border:rgba(48,54,61,0.5);
+--border:rgba(255,255,255,0.08);--border-light:rgba(48,54,61,0.4);
+}
+[data-theme="light"]{
+--bg:linear-gradient(rgba(255,255,255,0.88),rgba(240,244,248,0.92)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(255,255,255,0.92);--card-border:rgba(0,0,0,0.06);--topbar-bg:rgba(255,255,255,0.7);
+--text:#1a1f2e;--text-muted:#57606a;--text-dim:#8B949E;--accent:#1F6FEB;--accent-green:#1a7f37;--accent-red:#cf222e;
+--btn-bg:rgba(0,0,0,0.06);--btn-hover:rgba(31,111,235,0.1);
+--input-bg:rgba(255,255,255,0.9);--input-border:rgba(0,0,0,0.15);
+--border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
+.topbar{background:var(--topbar-bg);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;transition:background 0.3s}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar h1 span{color:var(--accent)}
+.topbar a{color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:12px}
+.topbar a:hover{color:var(--accent)}
+.theme-btn{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:6px;border-radius:10px;transition:all 0.2s;margin-right:12px}
+.theme-btn:hover{background:var(--btn-hover);color:var(--accent)}
+.container{max-width:1000px;margin:auto;padding:20px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:20px;margin-bottom:18px;transition:background 0.3s}
+.card h2{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--accent)}
+input{padding:11px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--text);font-size:14px;margin-left:6px;margin-bottom:6px;font-family:'Cairo',sans-serif}
+input:focus{outline:none;border-color:var(--accent)}
+.btn-add{padding:11px 22px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-add:hover{transform:translateY(-1px)}
+.btn-sm{padding:5px 12px;border-radius:8px;font-size:12px;text-decoration:none;font-weight:600;transition:all 0.2s;display:inline-block;margin-left:4px}
+.btn-del{background:rgba(218,54,51,0.15);color:var(--accent-red)}
+.btn-del:hover{background:rgba(218,54,51,0.25)}
+.btn-edit{background:var(--btn-hover);color:var(--accent)}
+.btn-edit:hover{opacity:0.8}
+.btn-orders{background:rgba(35,134,54,0.15);color:var(--accent-green)}
+.btn-orders:hover{background:rgba(35,134,54,0.25)}
+.btn-copy{background:var(--btn-hover);color:var(--accent);border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'Cairo',sans-serif;font-weight:600}
+.btn-copy:hover{opacity:0.8}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th{text-align:right;padding:10px 8px;color:var(--text-dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--border-light)}
+td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text)}
+.code{font-family:monospace;color:var(--accent);font-weight:700;font-size:16px;letter-spacing:2px}
+.empty{color:var(--text-dim);font-size:14px;text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <a href="{{ url_for('admin') }}">الرئيسية</a>
+    <a href="{{ url_for('manage_products') }}">المنتجات</a>
+    <a href="{{ url_for('view_orders') }}">الطلبات</a>
+    <a href="{{ url_for('admin_logout') }}">خروج</a>
+  </div>
+  <div style="display:flex;align-items:center">
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
+    <h1><span>{{ shop_name }}</span> — إدارة المحلات</h1>
+  </div>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>➕ إضافة محل جديد</h2>
+    <form method="POST">
+      <input type="text" name="name" placeholder="اسم المحل (مثال: محل أحمد)" required style="width:220px">
+      <input type="text" name="phone" placeholder="رقم الهاتف" style="width:160px">
+      <input type="text" name="address" placeholder="العنوان" style="width:280px">
+      <button type="submit" class="btn-add">إضافة المحل</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>📋 المحلات المسجلة</h2>
+    <div style="background:var(--input-bg);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center">
+      <span>🔗 رابط الخادم: <strong id="publicUrlDisplay" style="color:var(--accent);direction:ltr;display:inline-block">{{ public_url }}</strong></span>
+      <button class="btn-copy" onclick="copyLink(this,document.getElementById('publicUrlDisplay').textContent)">نسخ</button>
+    </div>
+    {% if shops %}
+    <table>
+      <tr><th>الاسم</th><th>الكود</th><th>رمز QR</th><th>الهاتف</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
+      {% for s in shops %}
+      <tr>
+        <td style="font-weight:600">{{ s.name }}</td>
+        <td><span class="code">{{ s.code }}</span></td>
+        <td><img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data={{ public_url }}shop/{{ s.code }}" alt="QR" style="border-radius:6px;cursor:pointer" onclick="window.open('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ public_url }}shop/{{ s.code }}','_blank')" title="اضغط للتكبير"></td>
+        <td style="color:var(--text-muted);font-size:13px">{{ s.phone or '-' }}</td>
+        <td><input type="text" value="{{ public_url }}shop/{{ s.code }}" readonly style="width:140px;font-size:11px;padding:4px 8px;display:inline-block;margin:0;background:var(--input-bg)"><button class="btn-copy" onclick="copyLink(this,'{{ public_url }}shop/{{ s.code }}')">نسخ</button></td>
+        <td style="color:var(--text-dim);font-size:12px">{{ s.created_at }}</td>
+        <td><a href="{{ url_for('shop_orders_admin', id=s.id) }}" class="btn-sm btn-orders">📋 الطلبات</a><a href="{{ url_for('edit_shop', id=s.id) }}" class="btn-sm btn-edit">تعديل</a><a href="{{ url_for('delete_shop', id=s.id) }}" class="btn-sm btn-del" onclick="return confirm('حذف {{ s.name }}؟')">حذف</a><br><button class="btn-copy" onclick="printQR('{{ s.name }}','{{ public_url }}shop/{{ s.code }}','{{ s.code }}')" style="margin-top:4px">🖨️ QR</button></td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">لا توجد محلات بعد. أضف المحل الأول!</div>
+    {% endif %}
+  </div>
+</div>
+<script>
+(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
+function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
+function copyLink(btn,link){navigator.clipboard.writeText(link);btn.textContent='✓';setTimeout(()=>btn.textContent='نسخ',1500)}
+function printQR(name,link,code){var w=window.open('','_blank');w.document.write('<html dir=rtl><head><meta charset=UTF-8><title>QR - '+name+'</title><style>body{text-align:center;font-family:sans-serif;padding:40px}.store{color:#888;font-size:14px;margin-bottom:4px}h2{margin-bottom:2px}img{width:280px;height:280px}.code{font-size:24px;font-weight:700;letter-spacing:4px;color:#333;margin:10px 0}p{color:#666;margin-top:8px}@media print{button{display:none}}</style></head><body><div class=store>{{ shop_name }}</div><h2>🏪 '+name+'</h2><div class=code>'+code+'</div><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+link+'" alt="QR"><p>امسح الرمز للدخول للصفحة الرئيسية</p><br><button onclick="window.print()" style="padding:12px 30px;font-size:16px;cursor:pointer">🖨️ طباعة</button></body></html>');w.document.close()}
+function setPublicUrl(){var e=document.getElementById('publicUrlDisplay');if(e){e.textContent='{{ public_url }}'}}
+</script>
+</body>
+</html>
