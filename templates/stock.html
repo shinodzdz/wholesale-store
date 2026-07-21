@@ -113,7 +113,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       {% set cats = [] %}
       {% for p in products %}{% if p.category not in cats %}{% set _ = cats.append(p.category) %}{% endif %}{% endfor %}
       {% for c in cats|sort %}
-      <button class="cat-btn" onclick="filterCat('{{ c|replace("'","\\'") }}',this)">{{ c }}</button>
+      <button class="cat-btn" onclick="filterCat({{ c|tojson }},this)">{{ c }}</button>
       {% endfor %}
       <button class="cat-btn" onclick="sortByCat()" title="ترتيب حسب التصنيف">🔀 ترتيب</button>
     </div>
@@ -173,8 +173,8 @@ function openModal(){document.getElementById('stockModal').classList.add('show')
 function closeModal(){document.getElementById('stockModal').classList.remove('show')}
 document.getElementById('stockModal').addEventListener('click',function(e){if(e.target===this)closeModal()})
 var products=[{% for p in products %}{n:{{ p.name|tojson }},cat:{{ p.category|tojson }},stock:{{ p.stock|int }},unit:{{ p.unit|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}];
-function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('#catFilters ~ table tr[data-cat]').forEach(function(r){r.style.display=(cat==='all'||r.getAttribute('data-cat')===cat)?'':'none'})}
-function sortByCat(){var t=document.querySelector('#catFilters ~ table'),r=Array.from(t.querySelectorAll('tr[data-cat]'));r.sort(function(a,b){var ca=a.getAttribute('data-cat')||'',cb=b.getAttribute('data-cat')||'';return ca.localeCompare(cb)});r.forEach(function(row){t.appendChild(row)})}
+function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('tr[data-cat]').forEach(function(r){r.style.display=(cat==='all'||r.getAttribute('data-cat')===cat)?'':'none'})}
+function sortByCat(){var rows=Array.from(document.querySelectorAll('tr[data-cat]'));rows.sort(function(a,b){return(a.getAttribute('data-cat')||'').localeCompare(b.getAttribute('data-cat')||'')});var tbody=rows[0].parentNode;rows.forEach(function(r){tbody.appendChild(r)})}
 function printStock(){var d=new Date();var ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');var h='<html dir=rtl><head><meta charset=UTF-8><title>المخزون - {{ shop_name }}</title><style>body{font-family:sans-serif;padding:30px}h1{font-size:20px;margin-bottom:2px}.date{color:#888;font-size:13px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f0f0f0;padding:8px 10px;text-align:right;border:1px solid #ddd}td{padding:8px 10px;border:1px solid #ddd}.low{color:#d33;font-weight:700}.ok{color:#1a7f37;font-weight:700}.footer{margin-top:20px;font-size:11px;color:#999;text-align:center}@media print{button{display:none}}</style></head><body><h1>📊 {{ shop_name }}</h1><div class=date>📅 '+ds+'</div><table><tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون</th><th>الوحدة</th></tr>';products.forEach(function(p,i){h+='<tr><td>'+(i+1)+'</td><td>'+p.n+'</td><td>'+p.cat+'</td><td class="'+(p.stock>0?'ok':'low')+'">'+p.stock+'</td><td>'+p.unit+'</td></tr>'});h+='</table><div class=footer>تمت الطباعة في: '+ds+'</div></body></html>';var w=window.open('','_blank');w.document.write(h);w.document.close()}
 </script>
 <button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
