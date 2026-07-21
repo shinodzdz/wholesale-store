@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إدارة المخزون - {{ shop_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+--bg:linear-gradient(rgba(11,14,20,0.82),rgba(26,31,46,0.88)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(22,27,34,0.8);--card-border:rgba(255,255,255,0.04);--topbar-bg:rgba(11,14,20,0.55);
+--text:#fff;--text-muted:#8B949E;--text-dim:#484F58;--accent:#58A6FF;--accent-green:#2EA043;--accent-red:#DA3633;
+--btn-bg:rgba(48,54,61,0.5);--btn-hover:rgba(88,166,255,0.15);
+--input-bg:rgba(13,17,23,0.8);--input-border:rgba(48,54,61,0.5);--border:rgba(255,255,255,0.08);--border-light:rgba(48,54,61,0.4);
+}
+[data-theme="light"]{
+--bg:linear-gradient(rgba(255,255,255,0.88),rgba(240,244,248,0.92)),url('https://images.unsplash.com/photo-1768176136613-96a7bfc0049e?fm=jpg&q=60&w=1920');
+--card-bg:rgba(255,255,255,0.92);--card-border:rgba(0,0,0,0.06);--topbar-bg:rgba(255,255,255,0.7);
+--text:#1a1f2e;--text-muted:#57606a;--text-dim:#8B949E;--accent:#1F6FEB;--accent-green:#1a7f37;--accent-red:#cf222e;
+--btn-bg:rgba(0,0,0,0.06);--btn-hover:rgba(31,111,235,0.1);
+--input-bg:rgba(255,255,255,0.9);--input-border:rgba(0,0,0,0.15);--border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
+.topbar{background:var(--topbar-bg);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;transition:background 0.3s}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar h1 span{color:var(--accent)}
+.topbar a{color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:12px}
+.topbar a:hover{color:var(--accent)}
+.theme-btn{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:6px;border-radius:10px;transition:all 0.2s;margin-right:12px}
+.theme-btn:hover{background:var(--btn-hover);color:var(--accent)}
+.container{max-width:1100px;margin:auto;padding:20px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:20px;margin-bottom:18px;transition:background 0.3s}
+.card h2{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;padding:10px 8px;color:var(--text-dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--border-light)}
+td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text);vertical-align:middle}
+.stock-num{font-size:18px;font-weight:900;font-family:monospace;direction:ltr;display:inline-block;min-width:50px}
+.stock-low{color:var(--accent-red)}
+.stock-ok{color:var(--accent-green)}
+.stock-form{display:flex;align-items:center;gap:4px}
+.stock-form input[type=number]{width:70px;padding:6px 8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--text);font-size:13px;font-family:'Cairo',sans-serif;text-align:center}
+.stock-form input:focus{outline:none;border-color:var(--accent)}
+.btn-stock{padding:6px 12px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Cairo',sans-serif}
+.btn-add-stock{background:rgba(35,134,54,0.2);color:var(--accent-green)}
+.btn-add-stock:hover{background:rgba(35,134,54,0.35)}
+.btn-sub-stock{background:rgba(218,54,51,0.2);color:var(--accent-red)}
+.btn-sub-stock:hover{background:rgba(218,54,51,0.35)}
+.btn-set-stock{background:var(--btn-hover);color:var(--accent)}
+.btn-set-stock:hover{opacity:0.8}
+.btn-sm{padding:5px 12px;border-radius:8px;font-size:12px;text-decoration:none;font-weight:600;transition:all 0.2s;display:inline-block;margin-left:4px}
+.btn-edit{background:var(--btn-hover);color:var(--accent)}
+.btn-edit:hover{opacity:0.8}
+.quick-add{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+.quick-item{background:var(--input-bg);border:1px solid var(--border-light);border-radius:12px;padding:12px;text-align:center}
+.quick-item .q-name{font-size:14px;font-weight:700;margin-bottom:6px}
+.quick-item .q-stock{font-size:13px;color:var(--text-muted);margin-bottom:8px}
+.quick-item .q-stock strong{color:var(--accent);font-size:18px}
+.quick-item form{display:flex;gap:4px;justify-content:center}
+.quick-item input[type=number]{width:70px;padding:5px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:13px;text-align:center;font-family:'Cairo',sans-serif}
+.empty{color:var(--text-dim);font-size:14px;text-align:center;padding:30px}
+.empty a{color:var(--accent);text-decoration:none}
+.flash{background:rgba(35,134,54,0.15);border:1px solid rgba(35,134,54,0.3);border-radius:10px;padding:10px 14px;color:var(--accent-green);font-size:13px;margin-bottom:12px;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <a href="{{ url_for('admin') }}">الرئيسية</a>
+    <a href="{{ url_for('manage_products') }}">المنتجات</a>
+    <a href="{{ url_for('view_orders') }}">الطلبات</a>
+    <a href="{{ url_for('admin_logout') }}">خروج</a>
+  </div>
+  <div style="display:flex;align-items:center">
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
+    <h1><span>{{ shop_name }}</span> — إدارة المخزون</h1>
+  </div>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>📊 <span>المخزون الحالي</span></h2>
+    {% if products %}
+    <div class="quick-add">
+      {% for p in products %}
+      <div class="quick-item">
+        <div class="q-name">{{ p.name }}</div>
+        <div class="q-stock">المخزون: <strong class="{{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ '%.1f'|format(p.stock) if p.stock else 0 }}</strong></div>
+        <form method="POST" style="display:flex;gap:4px;justify-content:center">
+          <input type="hidden" name="product_id" value="{{ p.id }}">
+          <input type="hidden" name="action" value="add">
+          <input type="number" step="0.5" name="qty" value="1" min="0" style="width:60px;padding:5px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:13px;text-align:center;font-family:'Cairo',sans-serif">
+          <button type="submit" class="btn-stock btn-add-stock" style="padding:5px 10px;font-size:12px">+</button>
+        </form>
+        <div style="margin-top:6px;display:flex;gap:4px;justify-content:center">
+          <form method="POST" style="display:inline">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <input type="hidden" name="action" value="sub">
+            <input type="hidden" name="qty" value="1">
+            <button type="submit" class="btn-stock btn-sub-stock" style="padding:3px 8px;font-size:11px">−1</button>
+          </form>
+          <a href="{{ url_for('edit_product', id=p.id) }}" class="btn-sm btn-edit" style="font-size:11px">تعديل</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <table>
+      <tr><th>#</th><th>المنتج</th><th>التصنيف</th><th>المخزون</th><th>إضافة</th><th>إنقاص</th><th>تحديد</th></tr>
+      {% for p in products %}
+      <tr>
+        <td style="color:var(--text-dim)">{{ loop.index }}</td>
+        <td style="font-weight:600">{{ p.name }}</td>
+        <td style="color:var(--text-muted)">{{ p.category }}</td>
+        <td><span class="stock-num {{ 'stock-low' if p.stock==0 else 'stock-ok' }}">{{ '%.1f'|format(p.stock) if p.stock else 0 }}</span> <span style="color:var(--text-dim);font-size:11px">{{ p.unit }}</span></td>
+        <td>
+          <form method="POST" class="stock-form">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <input type="hidden" name="action" value="add">
+            <input type="number" step="0.5" name="qty" value="1" min="0">
+            <button type="submit" class="btn-stock btn-add-stock">➕</button>
+          </form>
+        </td>
+        <td>
+          <form method="POST" class="stock-form">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <input type="hidden" name="action" value="sub">
+            <input type="number" step="0.5" name="qty" value="1" min="0">
+            <button type="submit" class="btn-stock btn-sub-stock">➖</button>
+          </form>
+        </td>
+        <td>
+          <form method="POST" class="stock-form">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <input type="hidden" name="action" value="set">
+            <input type="number" step="0.5" name="qty" value="{{ p.stock or 0 }}" style="width:60px">
+            <button type="submit" class="btn-stock btn-set-stock">تعيين</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">لا توجد منتجات. <a href="{{ url_for('manage_products') }}">أضف المنتجات أولاً</a></div>
+    {% endif %}
+  </div>
+  <div style="text-align:center;margin-top:10px">
+    <a href="{{ url_for('manage_products') }}" style="padding:10px 24px;background:linear-gradient(135deg,#238636,#2EA043);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block">➕ إضافة منتج جديد</a>
+  </div>
+</div>
+<script>
+(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
+function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
+</script>
+</body>
+</html>

@@ -108,6 +108,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   <div class="logo">🏪 {{ shop_name }}</div>
   <a href="{{ url_for('admin') }}" class="active">📊 لوحة التحكم</a>
   <a href="{{ url_for('manage_products') }}">📦 المنتجات</a>
+  <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">📊 المخزون</a>
   <a href="{{ url_for('manage_shops') }}">🏪 المحلات</a>
   <a href="{{ url_for('view_orders') }}">📋 الطلبات</a>
   <a href="{{ url_for('change_password') }}" style="margin-top:6px;font-size:13px">🔑 تغيير كلمة السر</a>
@@ -120,6 +121,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="تغيير الثيم">🌙</button>
       <div class="actions">
         <a href="{{ url_for('view_orders') }}">📋 الطلبات</a>
+        <a href="{{ url_for('manage_stock') }}" style="color:var(--accent-green)">📊 المخزون</a>
         <a href="{{ url_for('admin_logout') }}">🚪</a>
       </div>
     </div>

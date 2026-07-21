@@ -187,6 +187,28 @@ def edit_product(id):
         return redirect(url_for('manage_products'))
     return render_template('product_edit.html', product=product)
 
+# ─── Stock Management ───
+
+@app.route('/admin/stock', methods=['GET', 'POST'])
+@admin_required
+def manage_stock():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        product_id = int(request.form.get('product_id'))
+        qty = float(request.form.get('qty', 0))
+        product = db.session.get(Product, product_id)
+        if product:
+            if action == 'add':
+                product.stock = (product.stock or 0) + qty
+            elif action == 'set':
+                product.stock = max(0, qty)
+            elif action == 'sub':
+                product.stock = max(0, (product.stock or 0) - qty)
+            db.session.commit()
+        return redirect(url_for('manage_stock'))
+    products = Product.query.order_by(Product.category, Product.name).all()
+    return render_template('stock.html', products=products)
+
 # ─── Shops ───
 
 @app.route('/admin/shops', methods=['GET', 'POST'])
