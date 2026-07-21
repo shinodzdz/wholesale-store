@@ -126,7 +126,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       {% set cats = [] %}
       {% for p in products %}{% if p.category not in cats %}{% set _ = cats.append(p.category) %}{% endif %}{% endfor %}
       {% for c in cats|sort %}
-      <button class="cat-btn" onclick="filterCat({{ c|tojson }},this)">{{ c }}</button>
+      <button class="cat-btn" onclick='filterCat({{ c|tojson }},this)'>{{ c }}</button>
       {% endfor %}
       <button class="cat-btn" onclick="sortByCat()" title="ترتيب حسب التصنيف">🔀 ترتيب</button>
     </div>
