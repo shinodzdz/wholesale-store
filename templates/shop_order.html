@@ -112,7 +112,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
   {% set cats = [] %}
   {% for p in products %}{% if p.category not in cats %}{% set _ = cats.append(p.category) %}{% endif %}{% endfor %}
   {% for c in cats|sort %}
-  <button class="cat-btn" onclick="filterCat({{ c|tojson }},this)">{{ c }}</button>
+  <button class="cat-btn" onclick='filterCat({{ c|tojson }},this)'>{{ c }}</button>
   {% endfor %}
 </div>
 <div class="container">
@@ -176,7 +176,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
 </div>
 <script>
 const shopCode = '{{ shop.code }}';
-function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('.product[data-cat]').forEach(function(p){p.style.display=(cat==='all'||p.getAttribute('data-cat')===cat)?'':'none'});document.querySelectorAll('.cat-title').forEach(function(t){var s=t.nextElementSibling;var visible=false;while(s&&s.classList.contains('product')){if(s.style.display!=='none'){visible=true;break}s=s.nextElementSibling}t.style.display=(cat==='all'||(visible))?'':'none'})}
+function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('.product[data-cat]').forEach(function(p){p.style.display=(cat==='all'||p.getAttribute('data-cat')===cat)?'':'none'});var vc=[];document.querySelectorAll('.product[data-cat]').forEach(function(p){if(p.style.display!=='none'&&vc.indexOf(p.getAttribute('data-cat'))===-1)vc.push(p.getAttribute('data-cat'))});document.querySelectorAll('.cat-title').forEach(function(t){var cn=t.querySelector('span').textContent;t.style.display=(cat==='all'||vc.indexOf(cn)!==-1)?'':'none'})}
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
 function changeQty(btn,d){var inp=btn.parentElement.querySelector('.qty');var p=btn.closest('.product');var stock=parseFloat(p.dataset.stock);var v=parseFloat(inp.value)||0;var nv=v+d;if(nv>stock){alert('الكمية المتوفرة في المخزون: '+stock+' '+p.dataset.unit+' فقط. الرجاء تعديل الكمية.');return}inp.value=Math.max(0,nv);updateCart()}
