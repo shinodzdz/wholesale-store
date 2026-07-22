@@ -328,9 +328,9 @@ def import_excel():
             elif import_type == 'shops':
                 for row in rows[1:]:
                     vals = [str(v).strip() if v else '' for v in row]
-                    name = vals[headers.index('name')] if 'name' in headers else (vals[0] if len(vals) > 0 else '')
-                    phone = vals[headers.index('phone')] if 'phone' in headers else (vals[1] if len(vals) > 1 else '')
-                    address = vals[headers.index('address')] if 'address' in headers else (vals[2] if len(vals) > 2 else '')
+                    name = vals[headers.index('name')] if 'name' in headers else (vals[headers.index('الاسم')] if 'الاسم' in headers else (vals[0] if len(vals) > 0 else ''))
+                    phone = vals[headers.index('phone')] if 'phone' in headers else (vals[headers.index('الهاتف')] if 'الهاتف' in headers else (vals[1] if len(vals) > 1 else ''))
+                    address = vals[headers.index('address')] if 'address' in headers else (vals[headers.index('العنوان')] if 'العنوان' in headers else (vals[2] if len(vals) > 2 else ''))
                     if name:
                         code = generate_code()
                         while Shop.query.filter_by(code=code).first():
