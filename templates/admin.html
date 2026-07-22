@@ -190,11 +190,12 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <h2><span>🏪</span> المحلات المسجلة</h2>
       {% if shops %}
       <table>
-        <tr><th>الاسم</th><th>الكود</th><th>الهاتف</th><th>التسجيل</th><th>الرابط</th></tr>
+        <tr><th>الاسم</th><th>الكود</th><th>النوع</th><th>الهاتف</th><th>التسجيل</th><th>الرابط</th></tr>
         {% for s in shops %}
         <tr>
           <td style="font-weight:600">{{ s.name }}</td>
           <td style="direction:ltr;font-family:monospace;color:var(--accent);font-weight:700;letter-spacing:2px">{{ s.code }}</td>
+          <td><span class="badge badge-{{ 'new' if s.type=='جملة' else 'preparing' }}" style="font-size:11px">{{ s.type }}</span></td>
           <td style="color:var(--text-muted);font-size:13px">{{ s.phone or '-' }}</td>
           <td style="color:var(--text-dim);font-size:12px">{{ s.created_at }}</td>
           <td><a href="/shop/{{ s.code }}" target="_blank" class="btn-sm btn-view">فتح</a></td>

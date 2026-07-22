@@ -63,7 +63,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
     <div class="welcome">
       <div class="icon">🏪</div>
       <h1>مرحباً بك <span>{{ shop.name }}</span></h1>
-      <p>{{ shop_tagline }}</p>
+      <p>{{ shop_tagline }} · <span style="color:var(--accent);font-weight:600">{{ shop.type }}</span></p>
     </div>
     <div class="actions">
       <a href="{{ url_for('shop_order', code=shop.code) }}" class="btn-order">🛒 طلب جديد</a>

@@ -19,6 +19,18 @@ app.config['PUBLIC_URL'] = os.environ.get('PUBLIC_URL', '')
 
 db = SQLAlchemy(app)
 
+with app.app_context():
+    db.create_all()
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    prod_cols = [c['name'] for c in inspector.get_columns('products')]
+    shop_cols = [c['name'] for c in inspector.get_columns('shops')]
+    if 'price_semi' not in prod_cols:
+        db.session.execute('ALTER TABLE products ADD COLUMN price_semi FLOAT DEFAULT 0')
+    if 'type' not in shop_cols:
+        db.session.execute("ALTER TABLE shops ADD COLUMN type VARCHAR(20) DEFAULT 'جملة'")
+    db.session.commit()
+
 class Admin(db.Model):
     __tablename__ = 'admins'
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +42,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     price = db.Column(db.Float, nullable=False)
+    price_semi = db.Column(db.Float, default=0)
     unit = db.Column(db.String(50), default='قطعة')
     category = db.Column(db.String(100), default='عام')
     available = db.Column(db.Integer, default=1)
@@ -42,6 +55,7 @@ class Shop(db.Model):
     code = db.Column(db.String(20), unique=True, nullable=False)
     phone = db.Column(db.String(50))
     address = db.Column(db.String(300))
+    type = db.Column(db.String(20), default='جملة')
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 class Order(db.Model):
@@ -145,10 +159,11 @@ def manage_products():
     if request.method == 'POST':
         name = request.form['name']
         price = float(request.form['price'])
+        price_semi = float(request.form.get('price_semi', 0) or 0)
         unit = request.form.get('unit', 'قطعة')
         category = request.form.get('category', 'عام')
         stock = float(request.form.get('stock', 0))
-        db.session.add(Product(name=name, price=price, unit=unit, category=category, stock=stock))
+        db.session.add(Product(name=name, price=price, price_semi=price_semi, unit=unit, category=category, stock=stock))
         db.session.commit()
     products = Product.query.order_by(Product.category, Product.name).all()
     return render_template('products.html', products=products)
@@ -191,6 +206,7 @@ def edit_product(id):
     if request.method == 'POST':
         product.name = request.form['name']
         product.price = float(request.form['price'])
+        product.price_semi = float(request.form.get('price_semi', 0) or 0)
         product.unit = request.form.get('unit', 'قطعة')
         product.category = request.form.get('category', 'عام')
         product.stock = float(request.form.get('stock', 0))
@@ -276,10 +292,11 @@ def manage_shops():
         name = request.form['name']
         phone = request.form.get('phone', '')
         address = request.form.get('address', '')
+        shop_type = request.form.get('type', 'جملة')
         code = generate_code()
         while Shop.query.filter_by(code=code).first():
             code = generate_code()
-        db.session.add(Shop(name=name, code=code, phone=phone, address=address))
+        db.session.add(Shop(name=name, code=code, phone=phone, address=address, type=shop_type))
         db.session.commit()
     shops = Shop.query.order_by(Shop.created_at.desc()).all()
     return render_template('shops.html', shops=shops)
@@ -316,6 +333,7 @@ def edit_shop(id):
         shop.name = request.form['name']
         shop.phone = request.form.get('phone', '')
         shop.address = request.form.get('address', '')
+        shop.type = request.form.get('type', 'جملة')
         db.session.commit()
         return redirect(url_for('manage_shops'))
     return render_template('shop_edit.html', shop=shop)
@@ -349,7 +367,8 @@ def import_excel():
                     category = vals[headers.index('category')] if 'category' in headers else (vals[3] if len(vals) > 3 else 'عام')
                     stock = int(float(vals[headers.index('stock')])) if 'stock' in headers and vals[headers.index('stock')] else 0
                     if name:
-                        db.session.add(Product(name=name, price=price, unit=unit, category=category, stock=stock))
+                        price_semi = float(vals[headers.index('price_semi')]) if 'price_semi' in headers and vals[headers.index('price_semi')] else (float(vals[headers.index('سعر النصف جملة')]) if 'سعر النصف جملة' in headers and vals[headers.index('سعر النصف جملة')] else 0)
+                        db.session.add(Product(name=name, price=price, price_semi=price_semi, unit=unit, category=category, stock=stock))
                         added += 1
             elif import_type == 'shops':
                 for row in rows[1:]:
@@ -357,11 +376,12 @@ def import_excel():
                     name = vals[headers.index('name')] if 'name' in headers else (vals[headers.index('الاسم')] if 'الاسم' in headers else (vals[0] if len(vals) > 0 else ''))
                     phone = vals[headers.index('phone')] if 'phone' in headers else (vals[headers.index('الهاتف')] if 'الهاتف' in headers else (vals[1] if len(vals) > 1 else ''))
                     address = vals[headers.index('address')] if 'address' in headers else (vals[headers.index('العنوان')] if 'العنوان' in headers else (vals[2] if len(vals) > 2 else ''))
+                    shop_type = vals[headers.index('type')] if 'type' in headers else (vals[headers.index('النوع')] if 'النوع' in headers else 'جملة')
                     if name:
                         code = generate_code()
                         while Shop.query.filter_by(code=code).first():
                             code = generate_code()
-                        db.session.add(Shop(name=name, code=code, phone=phone, address=address))
+                        db.session.add(Shop(name=name, code=code, phone=phone, address=address, type=shop_type))
                         added += 1
             db.session.commit()
             result = f'✅ تم استيراد {added} {import_type} بنجاح'

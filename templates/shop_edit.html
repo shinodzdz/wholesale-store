@@ -67,6 +67,11 @@ input:focus{outline:none;border-color:var(--accent)}
       <input type="text" name="phone" value="{{ shop.phone or '' }}">
       <label>العنوان</label>
       <input type="text" name="address" value="{{ shop.address or '' }}">
+      <label>النوع</label>
+      <select name="type" style="width:100%;padding:11px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--text);font-size:14px;font-family:'Cairo',sans-serif;box-sizing:border-box">
+        <option value="جملة" {{ 'selected' if shop.type=='جملة' }}>جملة</option>
+        <option value="نصف جملة" {{ 'selected' if shop.type=='نصف جملة' }}>نصف جملة</option>
+      </select>
       <label>كود المحل (للإطلاع فقط)</label>
       <div class="code-display">{{ shop.code }}</div>
       <div class="btn-row">
