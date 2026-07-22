@@ -80,13 +80,13 @@ input[type=file]:hover{border-color:var(--accent)}
       <input type="hidden" name="type" value="products">
       <label>ملف Excel للمنتجات</label>
       <input type="file" name="file" accept=".xlsx" required>
-      <div class="hint"><strong>تنسيق الملف:</strong><br>
-        <strong>name</strong> — اسم المنتج<br>
-        <strong>price</strong> — سعر الجملة<br>
-        <strong>price_semi</strong> أو <strong>سعر النصف جملة</strong> — سعر نصف الجملة (اختياري)<br>
-        <strong>unit</strong> — الوحدة (اختياري)<br>
-        <strong>category</strong> — التصنيف (اختياري)<br>
-        <strong>stock</strong> — المخزون (اختياري)</div>
+      <div class="hint"><strong>تنسيق الملف (عربي أو إنجليزي):</strong><br>
+        <strong>name</strong> أو <strong>الاسم</strong> — اسم المنتج<br>
+        <strong>price</strong> أو <strong>سعر الجملة</strong> — سعر الجملة<br>
+        <strong>price_semi</strong> أو <strong>سعر نصف الجملة</strong> — سعر نصف الجملة (اختياري — اتركه فارغاً إن لم يكن)<br>
+        <strong>unit</strong> أو <strong>الوحدة</strong> — الوحدة (اختياري)<br>
+        <strong>category</strong> أو <strong>التصنيف</strong> — التصنيف (اختياري)<br>
+        <strong>stock</strong> أو <strong>المخزون</strong> — المخزون (اختياري)</div>
       <button type="submit" class="btn-up">📥 استيراد المنتجات</button>
     </form>
     <form method="POST" enctype="multipart/form-data" id="formShops" class="tab-content">
