@@ -200,6 +200,32 @@ def edit_product(id):
 
 # ─── Stock Management ───
 
+@app.route('/admin/stock/import', methods=['POST'])
+@admin_required
+def stock_import():
+    file = request.files.get('file')
+    if not file or not file.filename.endswith('.xlsx'):
+        return redirect(url_for('manage_stock'))
+    from openpyxl import load_workbook
+    wb = load_workbook(file)
+    ws = wb.active
+    rows = list(ws.iter_rows(values_only=True))
+    if len(rows) < 2:
+        return redirect(url_for('manage_stock'))
+    headers = [str(h).strip().lower() if h else '' for h in rows[0]]
+    updated = 0
+    for row in rows[1:]:
+        vals = [str(v).strip() if v else '' for v in row]
+        name = vals[headers.index('name')] if 'name' in headers else (vals[headers.index('الاسم')] if 'الاسم' in headers else (vals[0] if len(vals) > 0 else ''))
+        stock = int(float(vals[headers.index('stock')])) if 'stock' in headers else (int(float(vals[headers.index('المخزون')])) if 'المخزون' in headers else (int(float(vals[1])) if len(vals) > 1 and vals[1] else 0))
+        if name:
+            prod = Product.query.filter_by(name=name).first()
+            if prod:
+                prod.stock = max(0, stock)
+                updated += 1
+    db.session.commit()
+    return redirect(url_for('manage_stock'))
+
 @app.route('/admin/stock', methods=['GET', 'POST'])
 @admin_required
 def manage_stock():
