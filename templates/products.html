@@ -130,10 +130,16 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       {% endfor %}
     </div>
     {% if products %}
+    <form method="POST" action="{{ url_for('bulk_delete_products') }}" onsubmit="return confirm('حذف المنتجات المحددة نهائياً؟')" style="margin-bottom:10px;display:flex;gap:10px;align-items:center" id="bulkForm">
+      <input type="checkbox" onclick="for(var c of document.querySelectorAll('.sel'))c.checked=this.checked" id="selAll" style="width:auto">
+      <label for="selAll" style="margin:0;font-size:13px">تحديد الكل</label>
+      <button type="submit" class="btn-sm btn-del" style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif">🗑️ حذف المحدد</button>
+    </form>
     <table>
-      <tr><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
+      <tr><th></th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
       {% for p in products %}
       <tr data-cat="{{ p.category|replace('"','') }}">
+        <td><input type="checkbox" name="ids" value="{{ p.id }}" class="sel" form="bulkForm" style="width:auto"></td>
         <td style="font-weight:600">{{ p.name }}</td>
         <td>{{ '%.2f'|format(p.price) }} د.ج</td>
         <td style="font-weight:700;color:{{ 'var(--accent-green)' if p.stock>0 else 'var(--accent-red)' }}">{{ '%.1f'|format(p.stock) if p.stock else '0' }}</td>

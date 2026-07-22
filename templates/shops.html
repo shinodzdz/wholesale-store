@@ -102,10 +102,16 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <button class="btn-copy" onclick="copyLink(this,document.getElementById('publicUrlDisplay').textContent)">نسخ</button>
     </div>
     {% if shops %}
+    <form method="POST" action="{{ url_for('bulk_delete_shops') }}" onsubmit="return confirm('حذف المحلات المحددة نهائياً؟')" style="margin-bottom:10px;display:flex;gap:10px;align-items:center" id="bulkForm">
+      <input type="checkbox" onclick="for(var c of document.querySelectorAll('.sel'))c.checked=this.checked" id="selAll" style="width:auto">
+      <label for="selAll" style="margin:0;font-size:13px">تحديد الكل</label>
+      <button type="submit" class="btn-sm btn-del" style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif">🗑️ حذف المحدد</button>
+    </form>
     <table>
-      <tr><th>الاسم</th><th>الكود</th><th>رمز QR</th><th>الهاتف</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
+      <tr><th></th><th>الاسم</th><th>الكود</th><th>رمز QR</th><th>الهاتف</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
       {% for s in shops %}
       <tr>
+        <td><input type="checkbox" name="ids" value="{{ s.id }}" class="sel" form="bulkForm" style="width:auto"></td>
         <td style="font-weight:600">{{ s.name }}</td>
         <td><span class="code">{{ s.code }}</span></td>
         <td><img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data={{ public_url }}shop/{{ s.code }}" alt="QR" style="border-radius:6px;cursor:pointer" onclick="window.open('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ public_url }}shop/{{ s.code }}','_blank')" title="اضغط للتكبير"></td>

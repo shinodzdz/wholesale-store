@@ -162,6 +162,17 @@ def delete_product(id):
         db.session.commit()
     return redirect(url_for('manage_products'))
 
+@app.route('/admin/products/bulk_delete', methods=['POST'])
+@admin_required
+def bulk_delete_products():
+    ids = request.form.getlist('ids')
+    for pid in ids:
+        product = db.session.get(Product, int(pid))
+        if product:
+            db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for('manage_products'))
+
 @app.route('/admin/products/toggle/<int:id>')
 @admin_required
 def toggle_product(id):
@@ -255,6 +266,18 @@ def delete_shop(id):
         Order.query.filter_by(shop_id=id).delete()
         db.session.delete(shop)
         db.session.commit()
+    return redirect(url_for('manage_shops'))
+
+@app.route('/admin/shops/bulk_delete', methods=['POST'])
+@admin_required
+def bulk_delete_shops():
+    ids = request.form.getlist('ids')
+    for sid in ids:
+        shop = db.session.get(Shop, int(sid))
+        if shop:
+            Order.query.filter_by(shop_id=int(sid)).delete()
+            db.session.delete(shop)
+    db.session.commit()
     return redirect(url_for('manage_shops'))
 
 @app.route('/admin/shops/edit/<int:id>', methods=['GET', 'POST'])
