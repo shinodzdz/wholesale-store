@@ -21,14 +21,14 @@ db = SQLAlchemy(app)
 
 with app.app_context():
     db.create_all()
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
     prod_cols = [c['name'] for c in inspector.get_columns('products')]
     shop_cols = [c['name'] for c in inspector.get_columns('shops')]
     if 'price_semi' not in prod_cols:
-        db.session.execute('ALTER TABLE products ADD COLUMN price_semi FLOAT DEFAULT 0')
+        db.session.execute(text('ALTER TABLE products ADD COLUMN price_semi FLOAT DEFAULT 0'))
     if 'type' not in shop_cols:
-        db.session.execute("ALTER TABLE shops ADD COLUMN type VARCHAR(20) DEFAULT 'جملة'")
+        db.session.execute(text("ALTER TABLE shops ADD COLUMN type VARCHAR(20) DEFAULT 'جملة'"))
     db.session.commit()
 
 class Admin(db.Model):
