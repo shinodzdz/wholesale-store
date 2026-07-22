@@ -295,10 +295,10 @@ def import_excel():
                 for row in rows[1:]:
                     vals = [str(v).strip() if v else '' for v in row]
                     name = vals[headers.index('name')] if 'name' in headers else (vals[0] if len(vals) > 0 else '')
-                    price = float(vals[headers.index('price')]) if 'price' in headers else (float(vals[1]) if len(vals) > 1 else 0)
+                    price = float(vals[headers.index('price')]) if 'price' in headers and vals[headers.index('price')] else (float(vals[1]) if len(vals) > 1 and vals[1] else 0)
                     unit = vals[headers.index('unit')] if 'unit' in headers else (vals[2] if len(vals) > 2 else 'قطعة')
                     category = vals[headers.index('category')] if 'category' in headers else (vals[3] if len(vals) > 3 else 'عام')
-                    stock = int(float(vals[headers.index('stock')])) if 'stock' in headers else 0
+                    stock = int(float(vals[headers.index('stock')])) if 'stock' in headers and vals[headers.index('stock')] else 0
                     if name:
                         db.session.add(Product(name=name, price=price, unit=unit, category=category, stock=stock))
                         added += 1
