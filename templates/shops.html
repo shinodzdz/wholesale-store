@@ -63,6 +63,9 @@ th{text-align:right;padding:10px 8px;color:var(--text-dim);font-weight:600;font-
 td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text)}
 .code{font-family:monospace;color:var(--accent);font-weight:700;font-size:16px;letter-spacing:2px}
 .empty{color:var(--text-dim);font-size:14px;text-align:center;padding:30px}
+.cat-btn{padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -106,6 +109,11 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <button class="btn-copy" onclick="copyLink(this,document.getElementById('publicUrlDisplay').textContent)">نسخ</button>
     </div>
     {% if shops %}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="typeFilters">
+      <button class="cat-btn active" onclick="filterType('all',this)">الكل</button>
+      <button class="cat-btn" onclick="filterType('جملة',this)">جملة</button>
+      <button class="cat-btn" onclick="filterType('نصف جملة',this)">نصف جملة</button>
+    </div>
     <form method="POST" action="{{ url_for('bulk_delete_shops') }}" onsubmit="return confirm('حذف المحلات المحددة نهائياً؟')" style="margin-bottom:10px;display:flex;gap:10px;align-items:center" id="bulkForm">
       <input type="checkbox" onclick="for(var c of document.querySelectorAll('.sel'))c.checked=this.checked" id="selAll" style="width:auto">
       <label for="selAll" style="margin:0;font-size:13px">تحديد الكل</label>
@@ -114,7 +122,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
     <table>
       <tr><th></th><th>الاسم</th><th>الكود</th><th>رمز QR</th><th>الهاتف</th><th>العنوان</th><th>النوع</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
       {% for s in shops %}
-      <tr>
+      <tr data-type="{{ s.type }}">
         <td><input type="checkbox" name="ids" value="{{ s.id }}" class="sel" form="bulkForm" style="width:auto"></td>
         <td style="font-weight:600">{{ s.name }}</td>
         <td><span class="code">{{ s.code }}</span></td>
@@ -140,6 +148,7 @@ function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-the
 function copyLink(btn,link){navigator.clipboard.writeText(link);btn.textContent='✓';setTimeout(()=>btn.textContent='نسخ',1500)}
 function printQR(name,link,code){var w=window.open('','_blank');w.document.write('<html dir=rtl><head><meta charset=UTF-8><title>QR - '+name+'</title><style>body{text-align:center;font-family:sans-serif;padding:40px}.store{color:#888;font-size:14px;margin-bottom:4px}h2{margin-bottom:2px}img{width:280px;height:280px}.code{font-size:24px;font-weight:700;letter-spacing:4px;color:#333;margin:10px 0}p{color:#666;margin-top:8px}@media print{button{display:none}}</style></head><body><div class=store>{{ shop_name }}</div><h2>🏪 '+name+'</h2><div class=code>'+code+'</div><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+link+'" alt="QR"><p>امسح الرمز للدخول للصفحة الرئيسية</p><br><button onclick="window.print()" style="padding:12px 30px;font-size:16px;cursor:pointer">🖨️ طباعة</button></body></html>');w.document.close()}
 function setPublicUrl(){var e=document.getElementById('publicUrlDisplay');if(e){e.textContent='{{ public_url }}'}}
+function filterType(type,btn){document.querySelectorAll('#typeFilters .cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('tr[data-type]').forEach(function(r){r.style.display=(type==='all'||r.getAttribute('data-type')===type)?'':'none'})}
 function printShops(){var d=new Date();var ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');var h='<html dir=rtl><head><meta charset=UTF-8><title>المحلات - {{ shop_name }}</title><style>body{font-family:sans-serif;padding:30px}h1{font-size:20px;margin-bottom:2px}.date{color:#888;font-size:13px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f0f0f0;padding:8px 10px;text-align:right;border:1px solid #ddd}td{padding:8px 10px;border:1px solid #ddd}.footer{margin-top:20px;font-size:11px;color:#999;text-align:center}</style></head><body><h1>🏪 {{ shop_name }}</h1><div class=date>📅 '+ds+'</div><table><tr><th>#</th><th>المحل</th><th>الكود</th><th>الهاتف</th><th>العنوان</th><th>التسجيل</th></tr>';shps.forEach(function(s,i){h+='<tr><td>'+(i+1)+'</td><td>'+s.n+'</td><td style="font-family:monospace;letter-spacing:2px;font-weight:700">'+s.code+'</td><td>'+(s.phone||'-')+'</td><td>'+(s.addr||'-')+'</td><td style="font-size:12px">'+s.cr+'</td></tr>'});h+='</table><div class=footer>تمت الطباعة في: '+ds+'</div></body></html>';var w=window.open('','_blank');w.document.write(h);w.document.close()}
 </script>
 <button class="info-btn" onclick="showInfo()" title="معلومات الموقع">ℹ️</button>
