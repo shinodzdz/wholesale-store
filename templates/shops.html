@@ -66,6 +66,18 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
 .cat-btn{padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
 .cat-btn:hover{border-color:var(--accent);color:var(--accent)}
 .cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media(max-width:768px){
+.topbar{flex-wrap:wrap;gap:4px;padding:10px 12px}
+.topbar>div:first-child{display:flex;flex-wrap:wrap;gap:3px}
+.topbar a{font-size:11px;margin-right:6px}
+.topbar h1{font-size:13px}
+.container{padding:8px}
+table{font-size:11px}
+td,th{padding:5px 3px}
+}
+@media(max-width:480px){
+.hide-mobile{display:none}
+}
 </style>
 </head>
 <body>
@@ -120,14 +132,14 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
       <button type="submit" class="btn-sm btn-del" style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif">🗑️ حذف المحدد</button>
     </form>
     <table>
-      <tr><th></th><th>الاسم</th><th>الكود</th><th>رمز QR</th><th>الهاتف</th><th>العنوان</th><th>النوع</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
+      <tr><th></th><th>الاسم</th><th>الكود</th><th>رمز QR</th><th class="hide-mobile">الهاتف</th><th>العنوان</th><th>النوع</th><th>الرابط</th><th>التسجيل</th><th></th></tr>
       {% for s in shops %}
       <tr data-type="{{ s.type }}">
         <td><input type="checkbox" name="ids" value="{{ s.id }}" class="sel" form="bulkForm" style="width:auto"></td>
         <td style="font-weight:600">{{ s.name }}</td>
         <td><span class="code">{{ s.code }}</span></td>
         <td><img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data={{ public_url }}shop/{{ s.code }}" alt="QR" style="border-radius:6px;cursor:pointer" onclick="window.open('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ public_url }}shop/{{ s.code }}','_blank')" title="اضغط للتكبير"></td>
-        <td style="color:var(--text-muted);font-size:13px">{{ s.phone or '-' }}</td>
+        <td style="color:var(--text-muted);font-size:13px" class="hide-mobile">{{ s.phone or '-' }}</td>
         <td style="color:var(--text-muted);font-size:13px">{{ s.address or '-' }}</td>
         <td><span class="badge badge-{{ 'new' if s.type=='جملة' else 'preparing' }}">{{ s.type }}</span></td>
         <td><input type="text" value="{{ public_url }}shop/{{ s.code }}" readonly style="width:140px;font-size:11px;padding:4px 8px;display:inline-block;margin:0;background:var(--input-bg)"><button class="btn-copy" onclick="copyLink(this,'{{ public_url }}shop/{{ s.code }}')">نسخ</button></td>

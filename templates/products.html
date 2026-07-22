@@ -85,6 +85,18 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
 .avail{color:var(--accent-green)}
 .unavail{color:var(--accent-red)}
 .empty{color:var(--text-dim);font-size:14px;text-align:center;padding:30px}
+@media(max-width:768px){
+.topbar{flex-wrap:wrap;gap:4px;padding:10px 12px}
+.topbar>div:first-child{display:flex;flex-wrap:wrap;gap:3px}
+.topbar a{font-size:11px;margin-right:6px}
+.topbar h1{font-size:13px}
+.container{padding:8px}
+table{font-size:11px}
+td,th{padding:5px 3px}
+}
+@media(max-width:480px){
+.hide-mobile{display:none}
+}
 </style>
 </head>
 <body>
@@ -107,12 +119,12 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
   <div class="card">
     <h2>➕ إضافة منتج جديد</h2>
     <form method="POST">
-      <input type="text" name="name" placeholder="اسم المنتج" required style="width:220px">
+      <input type="text" name="name" placeholder="اسم المنتج" required style="width:140px">
       <input type="number" step="0.01" name="price" placeholder="سعر الجملة" required style="width:100px">
       <input type="number" step="0.01" name="price_semi" placeholder="سعر نصف الجملة" value="0" style="width:120px">
       <input type="number" step="0.5" name="stock" placeholder="المخزون" value="0" style="width:90px">
       <input type="text" name="unit" placeholder="الوحدة" value="قطعة" style="width:100px">
-      <input type="text" name="category" placeholder="التصنيف" value="عام" style="width:120px">
+      <input type="text" name="category" placeholder="التصنيف" value="عام" style="width:80px">
       <button type="submit" class="btn-add">إضافة</button>
     </form>
     <div style="margin-top:10px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
