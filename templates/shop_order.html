@@ -88,6 +88,10 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
 .last-order .val{font-weight:700}
 .last-order .link{color:var(--accent);text-decoration:none;font-size:12px;padding:5px 10px;background:var(--btn-hover);border-radius:8px;transition:all 0.2s}
 .last-order .link:hover{opacity:0.8}
+.cat-filters{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px;padding:0 12px}
+.cat-btn{padding:6px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -103,6 +107,14 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
   <a href="{{ url_for('shop_orders', code=shop.code) }}" class="link">عرض الكل</a>
 </div>
 {% endif %}
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 12px 0" id="catFilters">
+  <button class="cat-btn active" onclick="filterCat('all',this)">الكل</button>
+  {% set cats = [] %}
+  {% for p in products %}{% if p.category not in cats %}{% set _ = cats.append(p.category) %}{% endif %}{% endfor %}
+  {% for c in cats|sort %}
+  <button class="cat-btn" onclick="filterCat({{ c|tojson }},this)">{{ c }}</button>
+  {% endfor %}
+</div>
 <div class="container">
   {% set current_cat = '' %}
   {% for p in products %}
@@ -111,7 +123,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
       <div class="cat-title"><div class="dot"></div><span>{{ p.category }}</span></div>
     {% endif %}
     {% set prod_price = p.price_semi if shop.type=='نصف جملة' and p.price_semi > 0 else p.price %}
-    <div class="product {{ 'out-of-stock' if p.stock==0 }}" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ prod_price }}" data-unit="{{ p.unit }}" data-stock="{{ p.stock }}">
+    <div class="product {{ 'out-of-stock' if p.stock==0 }}" data-cat="{{ p.category }}" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ prod_price }}" data-unit="{{ p.unit }}" data-stock="{{ p.stock }}">
       <div class="info">
         <div class="name">{{ p.name }} {% if p.stock>0 %}<span style="color:var(--accent-green);font-size:11px;font-weight:600">متوفر</span>{% else %}<span style="color:var(--accent-red);font-size:11px;font-weight:600">غير متوفر</span>{% endif %}</div>
         <div class="price"><strong>{{ '%.2f'|format(prod_price) }} د.ج</strong> / {{ p.unit }}</div>
@@ -164,6 +176,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
 </div>
 <script>
 const shopCode = '{{ shop.code }}';
+function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('.product[data-cat]').forEach(function(p){p.style.display=(cat==='all'||p.getAttribute('data-cat')===cat)?'':'none'});document.querySelectorAll('.cat-title').forEach(function(t){var s=t.nextElementSibling;var visible=false;while(s&&s.classList.contains('product')){if(s.style.display!=='none'){visible=true;break}s=s.nextElementSibling}t.style.display=(cat==='all'||(visible))?'':'none'})}
 (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️'})();
 function toggleTheme(){var r=document.documentElement,n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️'}
 function changeQty(btn,d){var inp=btn.parentElement.querySelector('.qty');var p=btn.closest('.product');var stock=parseFloat(p.dataset.stock);var v=parseFloat(inp.value)||0;var nv=v+d;if(nv>stock){alert('الكمية المتوفرة في المخزون: '+stock+' '+p.dataset.unit+' فقط. الرجاء تعديل الكمية.');return}inp.value=Math.max(0,nv);updateCart()}
