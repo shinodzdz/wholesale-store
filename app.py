@@ -229,11 +229,18 @@ def stock_import():
     if len(rows) < 2:
         return redirect(url_for('manage_stock'))
     headers = [str(h).strip().lower() if h else '' for h in rows[0]]
+    col_map = {}
+    for h in headers:
+        hl = h.strip()
+        if hl in ('الاسم', 'اسم', 'name'):
+            col_map['name'] = h
+        elif hl in ('المخزون', 'مخزون', 'stock'):
+            col_map['stock'] = h
     updated = 0
     for row in rows[1:]:
         vals = [str(v).strip() if v else '' for v in row]
-        name = vals[headers.index('name')] if 'name' in headers else (vals[headers.index('الاسم')] if 'الاسم' in headers else (vals[0] if len(vals) > 0 else ''))
-        stock = int(float(vals[headers.index('stock')])) if 'stock' in headers else (int(float(vals[headers.index('المخزون')])) if 'المخزون' in headers else (int(float(vals[1])) if len(vals) > 1 and vals[1] else 0))
+        name = vals[headers.index(col_map['name'])] if 'name' in col_map else ''
+        stock = int(float(vals[headers.index(col_map['stock'])])) if 'stock' in col_map and vals[headers.index(col_map['stock'])] else 0
         if name:
             prod = Product.query.filter_by(name=name).first()
             if prod:
@@ -359,17 +366,33 @@ def import_excel():
             headers = [str(h).strip().lower() if h else '' for h in rows[0]]
             added = 0
             if import_type == 'products':
+                col_map = {}
+                for h in headers:
+                    hl = h.strip()
+                    if hl in ('الاسم', 'اسم', 'name'):
+                        col_map['name'] = h
+                    elif hl in ('سعر الجملة', 'سعرالجملة', 'price'):
+                        col_map['price'] = h
+                    elif hl in ('سعر نصف الجملة', 'سعر النصف جملة', 'سعرنصفالجملة', 'سعرالنصفجملة', 'نصف جملة', 'price_semi', 'semi price'):
+                        col_map['price_semi'] = h
+                    elif hl in ('الوحدة', 'وحدة', 'unit'):
+                        col_map['unit'] = h
+                    elif hl in ('التصنيف', 'تصنيف', 'category'):
+                        col_map['category'] = h
+                    elif hl in ('المخزون', 'مخزون', 'stock'):
+                        col_map['stock'] = h
                 for row in rows[1:]:
                     vals = [str(v).strip() if v else '' for v in row]
-                    name = vals[headers.index('name')] if 'name' in headers else (vals[0] if len(vals) > 0 else '')
-                    price = float(vals[headers.index('price')]) if 'price' in headers and vals[headers.index('price')] else (float(vals[1]) if len(vals) > 1 and vals[1] else 0)
-                    unit = vals[headers.index('unit')] if 'unit' in headers else (vals[2] if len(vals) > 2 else 'قطعة')
-                    category = vals[headers.index('category')] if 'category' in headers else (vals[3] if len(vals) > 3 else 'عام')
-                    stock = int(float(vals[headers.index('stock')])) if 'stock' in headers and vals[headers.index('stock')] else 0
-                    if name:
-                        price_semi = float(vals[headers.index('price_semi')]) if 'price_semi' in headers and vals[headers.index('price_semi')] else (float(vals[headers.index('سعر النصف جملة')]) if 'سعر النصف جملة' in headers and vals[headers.index('سعر النصف جملة')] else 0)
-                        db.session.add(Product(name=name, price=price, price_semi=price_semi, unit=unit, category=category, stock=stock))
-                        added += 1
+                    name = vals[headers.index(col_map['name'])] if 'name' in col_map else ''
+                    if not name:
+                        continue
+                    price = float(vals[headers.index(col_map['price'])]) if 'price' in col_map and vals[headers.index(col_map['price'])] else 0
+                    price_semi = float(vals[headers.index(col_map['price_semi'])]) if 'price_semi' in col_map and vals[headers.index(col_map['price_semi'])] else 0
+                    unit = vals[headers.index(col_map['unit'])] if 'unit' in col_map else 'قطعة'
+                    category = vals[headers.index(col_map['category'])] if 'category' in col_map else 'عام'
+                    stock = int(float(vals[headers.index(col_map['stock'])])) if 'stock' in col_map and vals[headers.index(col_map['stock'])] else 0
+                    db.session.add(Product(name=name, price=price, price_semi=price_semi, unit=unit, category=category, stock=stock))
+                    added += 1
             elif import_type == 'shops':
                 for row in rows[1:]:
                     vals = [str(v).strip() if v else '' for v in row]
