@@ -28,7 +28,7 @@ with app.app_context():
     if 'price_semi' not in prod_cols:
         db.session.execute(text('ALTER TABLE products ADD COLUMN price_semi FLOAT DEFAULT 0'))
     if 'type' not in shop_cols:
-        db.session.execute(text("ALTER TABLE shops ADD COLUMN type VARCHAR(20) DEFAULT 'جملة'"))
+        db.session.execute(text("ALTER TABLE shops ADD COLUMN type VARCHAR(20) DEFAULT 'تاجر جملة'"))
     db.session.commit()
 
 class Admin(db.Model):
@@ -55,7 +55,7 @@ class Shop(db.Model):
     code = db.Column(db.String(20), unique=True, nullable=False)
     phone = db.Column(db.String(50))
     address = db.Column(db.String(300))
-    type = db.Column(db.String(20), default='جملة')
+    type = db.Column(db.String(20), default='تاجر جملة')
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 class Order(db.Model):
@@ -299,7 +299,7 @@ def manage_shops():
         name = request.form['name']
         phone = request.form.get('phone', '')
         address = request.form.get('address', '')
-        shop_type = request.form.get('type', 'جملة')
+        shop_type = request.form.get('type', 'تاجر جملة')
         code = generate_code()
         while Shop.query.filter_by(code=code).first():
             code = generate_code()
@@ -340,7 +340,7 @@ def edit_shop(id):
         shop.name = request.form['name']
         shop.phone = request.form.get('phone', '')
         shop.address = request.form.get('address', '')
-        shop.type = request.form.get('type', 'جملة')
+        shop.type = request.form.get('type', 'تاجر جملة')
         db.session.commit()
         return redirect(url_for('manage_shops'))
     return render_template('shop_edit.html', shop=shop)
@@ -399,7 +399,7 @@ def import_excel():
                     name = vals[headers.index('name')] if 'name' in headers else (vals[headers.index('الاسم')] if 'الاسم' in headers else (vals[0] if len(vals) > 0 else ''))
                     phone = vals[headers.index('phone')] if 'phone' in headers else (vals[headers.index('الهاتف')] if 'الهاتف' in headers else (vals[1] if len(vals) > 1 else ''))
                     address = vals[headers.index('address')] if 'address' in headers else (vals[headers.index('العنوان')] if 'العنوان' in headers else (vals[2] if len(vals) > 2 else ''))
-                    shop_type = vals[headers.index('type')] if 'type' in headers else (vals[headers.index('النوع')] if 'النوع' in headers else 'جملة')
+                    shop_type = vals[headers.index('type')] if 'type' in headers else (vals[headers.index('النوع')] if 'النوع' in headers else 'تاجر جملة')
                     if name:
                         code = generate_code()
                         while Shop.query.filter_by(code=code).first():

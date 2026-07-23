@@ -122,7 +122,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
       {% set current_cat = p.category %}
       <div class="cat-title"><div class="dot"></div><span>{{ p.category }}</span></div>
     {% endif %}
-    {% set prod_price = p.price_semi if shop.type=='نصف جملة' and p.price_semi > 0 else p.price %}
+    {% set prod_price = p.price_semi if shop.type=='تاجر تجزئة' and p.price_semi > 0 else p.price %}
     <div class="product {{ 'out-of-stock' if p.stock==0 }}" data-cat="{{ p.category }}" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ prod_price }}" data-unit="{{ p.unit }}" data-stock="{{ p.stock }}">
       <div class="info">
         <div class="name">{{ p.name }} {% if p.stock>0 %}<span style="color:var(--accent-green);font-size:11px;font-weight:600">متوفر</span>{% else %}<span style="color:var(--accent-red);font-size:11px;font-weight:600">غير متوفر</span>{% endif %}</div>

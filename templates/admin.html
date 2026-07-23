@@ -106,6 +106,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border-light);color:var(--text
 .badge-new{background:var(--badge-new-bg);color:var(--accent-green)}
 .badge-ready{background:var(--badge-ready-bg);color:var(--accent)}
 .badge-done{background:var(--badge-done-bg);color:var(--text-dim)}
+.badge-preparing{background:var(--badge-ready-bg);color:var(--accent)}
 .btn-sm{padding:5px 12px;border-radius:8px;font-size:12px;text-decoration:none;font-weight:600;transition:all 0.2s;display:inline-block}
 .btn-view{background:var(--btn-hover);color:var(--accent)}
 .btn-view:hover{background:var(--btn-hover);opacity:0.8}
@@ -213,7 +214,7 @@ td,th{padding:8px 5px}
         <tr>
           <td style="font-weight:600">{{ s.name }}</td>
           <td style="direction:ltr;font-family:monospace;color:var(--accent);font-weight:700;letter-spacing:2px">{{ s.code }}</td>
-          <td><span class="badge badge-{{ 'new' if s.type=='جملة' else 'preparing' }}" style="font-size:11px">{{ s.type }}</span></td>
+          <td><span class="badge badge-{{ 'new' if s.type=='تاجر جملة' else 'preparing' }}" style="font-size:11px">{{ s.type }}</span></td>
           <td class="shop-phone" style="color:var(--text-muted);font-size:13px">{{ s.phone or '-' }}</td>
           <td class="shop-date" style="color:var(--text-dim);font-size:12px">{{ s.created_at }}</td>
           <td><a href="/shop/{{ s.code }}" target="_blank" class="btn-sm btn-view">فتح</a></td>
