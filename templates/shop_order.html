@@ -62,9 +62,11 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);background-size:cover;b
 .modal-overlay.show{display:flex}
 .modal{background:var(--modal-bg);border-radius:24px;padding:28px;width:100%;max-width:420px;max-height:80vh;overflow-y:auto;border:1px solid var(--border);transition:background 0.3s}
 .modal h2{color:var(--accent);font-size:18px;font-weight:700;margin-bottom:16px}
-.modal .item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
-.modal .item .name{color:var(--text)}
-.modal .item .val{color:var(--accent);font-weight:600}
+.modal .item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.modal .item .name{color:var(--text);flex:1}
+.modal .item .val{color:var(--accent);font-weight:600;margin-left:8px}
+.modal .item .btn-remove{width:28px;height:28px;border:none;border-radius:8px;background:rgba(218,54,51,0.2);color:var(--accent-red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.modal .item .btn-remove:hover{background:rgba(218,54,51,0.4)}
 .modal .grand-total{text-align:center;margin:18px 0;color:var(--accent);font-size:22px;font-weight:900}
 .modal textarea{width:100%;padding:12px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:12px;color:var(--text);font-size:13px;margin-bottom:14px;resize:vertical;font-family:'Cairo',sans-serif}
 .modal textarea:focus{outline:none;border-color:var(--accent)}
@@ -183,7 +185,9 @@ function changeQty(btn,d){var inp=btn.parentElement.querySelector('.qty');if(!in
 document.querySelectorAll('.product .qty').forEach(function(i){i.addEventListener('input',function(){var p=i.closest('.product');var stock=parseFloat(p.dataset.stock);var v=parseFloat(i.value)||0;if(v>stock){alert('الكمية المتوفرة في المخزون: '+stock+' '+p.dataset.unit+' فقط. الرجاء تعديل الكمية.');i.value=stock;updateCart();return}updateCart()});i.addEventListener('change',function(){if(parseFloat(this.value)<0)this.value=0})});
 function getItems(){var r=[];document.querySelectorAll('.product').forEach(function(p){var inp=p.querySelector('.qty');if(!inp)return;var q=parseFloat(inp.value)||0;if(q>0&&parseFloat(p.dataset.stock)>=q)r.push({id:p.dataset.id,name:p.dataset.name,price:parseFloat(p.dataset.price),qty:q,unit:p.dataset.unit})});return r}
 function updateCart(){var items=getItems();var t=items.reduce(function(s,i){return s+i.price*i.qty},0);document.getElementById('itemCount').textContent=items.length+' منتج';document.getElementById('cartTotal').textContent=t.toFixed(2)+' د.ج';document.getElementById('orderBtn').disabled=items.length===0}
-function showReview(){var items=getItems();if(!items.length)return;var h='';items.forEach(function(i){h+='<div class="item"><span class="name">'+i.name+' × '+i.qty+' '+i.unit+'</span><span class="val">'+(i.price*i.qty).toFixed(2)+' د.ج</span></div>'});document.getElementById('reviewItems').innerHTML=h;document.getElementById('reviewTotal').textContent=items.reduce(function(s,i){return s+i.price*i.qty},0).toFixed(2)+' د.ج';document.getElementById('reviewModal').classList.add('show')}
+function showReview(){window._reviewItems=getItems();if(!window._reviewItems.length)return;renderReview();document.getElementById('reviewModal').classList.add('show')}
+function renderReview(){var items=window._reviewItems;var h='';items.forEach(function(i,idx){h+='<div class="item"><span class="name">'+i.name+' × '+i.qty+' '+i.unit+'</span><span class="val">'+(i.price*i.qty).toFixed(2)+' د.ج</span><button class="btn-remove" onclick="removeReviewItem('+idx+')" title="إزالة">✕</button></div>'});document.getElementById('reviewItems').innerHTML=h;document.getElementById('reviewTotal').textContent=items.reduce(function(s,i){return s+i.price*i.qty},0).toFixed(2)+' د.ج'}
+function removeReviewItem(idx){var item=window._reviewItems[idx];if(item){var inp=document.querySelector('.product[data-id="'+item.id+'"] .qty');if(inp)inp.value=0}window._reviewItems.splice(idx,1);updateCart();if(window._reviewItems.length===0){closeReview();return}renderReview()}
 function closeReview(){document.getElementById('reviewModal').classList.remove('show')}
 function submitOrder(){var items=getItems();var notes=document.getElementById('notes').value;document.getElementById('reviewModal').classList.remove('show');fetch('/api/submit-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:shopCode,items:items,notes:notes})}).then(function(r){return r.json()}).then(function(d){if(d.success){document.getElementById('orderNumber').textContent='#'+d.order_id;document.getElementById('successScreen').classList.add('show')}else{alert(d.error||'خطأ')}}).catch(function(){alert('فشل الاتصال')})}
 </script>
