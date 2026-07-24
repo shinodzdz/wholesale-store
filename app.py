@@ -373,7 +373,7 @@ def import_excel():
                         col_map['name'] = h
                     elif hl in ('سعر الجملة', 'سعرالجملة', 'price'):
                         col_map['price'] = h
-                    elif hl in ('سعر نصف الجملة', 'سعر النصف جملة', 'سعرنصفالجملة', 'سعرالنصفجملة', 'نصف جملة', 'price_semi', 'semi price'):
+                    elif hl in ('سعر التجزئة', 'سعر نصف الجملة', 'سعر النصف جملة', 'سعرنصفالجملة', 'سعرالنصفجملة', 'نصف جملة', 'price_semi', 'semi price'):
                         col_map['price_semi'] = h
                     elif hl in ('الوحدة', 'وحدة', 'unit'):
                         col_map['unit'] = h

@@ -121,7 +121,7 @@ td,th{padding:5px 3px}
     <form method="POST">
       <input type="text" name="name" placeholder="اسم المنتج" required style="width:140px">
       <input type="number" step="0.01" name="price" placeholder="سعر الجملة" required style="width:100px">
-      <input type="number" step="0.01" name="price_semi" placeholder="سعر نصف الجملة" value="0" style="width:120px">
+      <input type="number" step="0.01" name="price_semi" placeholder="سعر التجزئة" value="0" style="width:120px">
       <input type="number" step="0.5" name="stock" placeholder="المخزون" value="0" style="width:90px">
       <input type="text" name="unit" placeholder="الوحدة" value="قطعة" style="width:100px">
       <input type="text" name="category" placeholder="التصنيف" value="عام" style="width:80px">
@@ -149,7 +149,7 @@ td,th{padding:5px 3px}
       <button type="submit" class="btn-sm btn-del" style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif">🗑️ حذف المحدد</button>
     </form>
     <table>
-      <tr><th></th><th>الاسم</th><th>سعر الجملة</th><th>سعر نصف الجملة</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
+      <tr><th></th><th>الاسم</th><th>سعر الجملة</th><th>سعر التجزئة</th><th>المخزون</th><th>الوحدة</th><th>التصنيف</th><th>الحالة</th><th></th></tr>
       {% for p in products %}
       <tr data-cat="{{ p.category|replace('"','') }}">
         <td><input type="checkbox" name="ids" value="{{ p.id }}" class="sel" form="bulkForm" style="width:auto"></td>
